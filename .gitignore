@@ -53,3 +53,8 @@ dist/electron
 apps/desktop/release
 
 .angular
+
+# BMAD
+_bmad/
+_bmad-output/
+.claude/
