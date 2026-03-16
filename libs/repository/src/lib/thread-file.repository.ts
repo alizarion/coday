@@ -168,8 +168,8 @@ export class ThreadFileRepository implements ThreadRepository {
         }
       }
 
-      const versionned = { ...thread, version: aiThreadMigrations.length + 1 }
-      const contentToSave = yaml.stringify(versionned)
+      const serialized = { ...thread.serialize(), version: aiThreadMigrations.length + 1 }
+      const contentToSave = yaml.stringify(serialized)
 
       // Write the new file
       await fs.writeFile(newThreadPath, contentToSave, 'utf-8')
@@ -215,6 +215,10 @@ export class ThreadFileRepository implements ThreadRepository {
                 price: data.price ?? 0,
                 starring: data.starring ?? [],
                 users: data.users ?? (data.username ? [data.username] : []),
+                parentThreadId: data.parentThreadId,
+                parentEventId: data.parentEventId,
+                delegatedAgentName: data.delegatedAgentName,
+                delegatedTask: data.delegatedTask,
               } as ThreadSummary
             })
         )

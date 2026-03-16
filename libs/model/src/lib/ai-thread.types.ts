@@ -5,6 +5,7 @@
 import {
   AnswerEvent,
   ChoiceEvent,
+  DelegationEvent,
   InviteEvent,
   MessageEvent,
   SummaryEvent,
@@ -30,6 +31,7 @@ export type ThreadMessage =
   | InviteEvent
   | ChoiceEvent
   | AnswerEvent
+  | DelegationEvent
 
 /**
  * Serialized representation of a thread for storage
@@ -47,6 +49,10 @@ export type ThreadSerialized = {
   price?: number // Total accumulated price for the thread
   starring?: string[] // List of usernames who starred this thread
   users?: string[] // List of usernames who own and have full access to this thread
+  parentThreadId?: string // ID of the parent thread (undefined for root threads)
+  parentEventId?: string // Timestamp of the ToolRequestEvent that spawned this sub-thread
+  delegatedAgentName?: string // Agent name that was delegated to
+  delegatedTask?: string // Short task description for display
 }
 
 export interface ThreadSummary {
@@ -61,6 +67,10 @@ export interface ThreadSummary {
   price: number
   starring: string[] // List of usernames who starred this thread
   users: string[] // List of usernames who own and have full access to this thread
+  parentThreadId?: string // ID of the parent thread (undefined for root threads)
+  parentEventId?: string // Timestamp of the ToolRequestEvent that spawned this sub-thread
+  delegatedAgentName?: string // Agent name that was delegated to
+  delegatedTask?: string // Short task description for display
 }
 
 /**
