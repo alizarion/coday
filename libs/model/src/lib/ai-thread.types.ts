@@ -36,7 +36,8 @@ export type ThreadMessage =
  */
 export type ThreadSerialized = {
   id: string
-  username: string
+  /** @deprecated Use users instead. Kept for retro-compatibility with persisted threads. */
+  username?: string
   projectId?: string
   messages?: any[]
   name?: string
@@ -45,10 +46,12 @@ export type ThreadSerialized = {
   modifiedDate?: string
   price?: number // Total accumulated price for the thread
   starring?: string[] // List of usernames who starred this thread
+  users?: string[] // List of usernames who own and have full access to this thread
 }
 
 export interface ThreadSummary {
   id: string
+  /** @deprecated Use users instead. Kept for retro-compatibility. */
   username: string
   projectId: string
   name: string
@@ -57,6 +60,7 @@ export interface ThreadSummary {
   modifiedDate: string
   price: number
   starring: string[] // List of usernames who starred this thread
+  users: string[] // List of usernames who own and have full access to this thread
 }
 
 /**

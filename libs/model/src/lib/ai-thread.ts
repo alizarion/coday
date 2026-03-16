@@ -54,8 +54,6 @@ export class AiThread {
   /** Unique identifier for the thread */
   id: string
 
-  username: string
-
   /** Project identifier this thread belongs to */
   projectId: string
 
@@ -67,6 +65,12 @@ export class AiThread {
 
   /** List of usernames who starred this thread */
   starring: string[] = []
+
+  /** @deprecated Use users instead. Kept for retro-compatibility with persisted threads. */
+  username: string
+
+  /** List of usernames who own and have full access to this thread */
+  users: string[] = []
 
   createdDate: string
   modifiedDate: string
@@ -102,11 +106,12 @@ export class AiThread {
    */
   constructor(thread: ThreadSerialized) {
     this.id = thread.id
-    this.username = thread.username
+    this.username = thread.username ?? ''
     this.projectId = thread.projectId ?? ''
     this.name = thread.name ?? ''
     this.summary = thread.summary ?? ''
     this.starring = thread.starring ?? []
+    this.users = thread.users ?? (thread.username ? [thread.username] : [])
     this.createdDate = thread.createdDate ?? new Date().toISOString()
     this.modifiedDate = thread.modifiedDate ?? this.createdDate
     this.price = thread.price ?? 0
@@ -464,6 +469,7 @@ export class AiThread {
       modifiedDate: new Date().toISOString(),
       price: 0,
       messages: cleanContext ? [] : [...this.messages], // Empty messages in clean context mode
+      users: [...this.users],
     })
 
     // Increment delegation depth (non-serializable)

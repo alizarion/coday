@@ -2,7 +2,7 @@ import * as path from 'node:path'
 import * as yaml from 'yaml'
 import * as fs from 'fs/promises'
 
-async function addUsernameToThreads(projectsPath, username) {
+async function addUsersToThreads(projectsPath, username) {
   try {
     // Get all project directories
     const projects = (await fs.readdir(projectsPath, { withFileTypes: true }))
@@ -26,8 +26,13 @@ async function addUsernameToThreads(projectsPath, username) {
             const data = yaml.parse(content)
 
             if (data && typeof data === 'object') {
-              // Add username to the object
-              const modified = { ...data, username }
+              // Determine effective username: use existing field or the provided argument
+              const effectiveUsername = data.username || username
+
+              // Initialize users from existing field or from effectiveUsername
+              const users = data.users ?? (effectiveUsername ? [effectiveUsername] : [])
+
+              const modified = { ...data, username: effectiveUsername, users }
 
               // Write back the modified content
               await fs.writeFile(filePath, yaml.stringify(modified))
@@ -61,8 +66,7 @@ username: ${username}`)
 
 if (!projectsPath || !username) {
   console.error('Usage: node add-username-to-threads.js <projectsPath> <username>')
-  // process.stdout.flush?.()
   process.exit(1)
 }
 
-addUsernameToThreads(projectsPath, username)
+addUsersToThreads(projectsPath, username)

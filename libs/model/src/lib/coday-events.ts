@@ -335,6 +335,7 @@ export class ThreadUpdateEvent extends CodayEvent {
   threadId: string
   name?: string
   summary?: string
+  users?: string[]
   static override type = 'thread_update'
 
   constructor(event: Partial<ThreadUpdateEvent>) {
@@ -342,6 +343,7 @@ export class ThreadUpdateEvent extends CodayEvent {
     this.threadId = event.threadId!
     this.name = event.name
     this.summary = event.summary
+    this.users = event.users
   }
 }
 
