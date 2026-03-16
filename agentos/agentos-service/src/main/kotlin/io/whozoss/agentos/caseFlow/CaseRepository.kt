@@ -1,11 +1,11 @@
 package io.whozoss.agentos.caseFlow
 
-import io.whozoss.agentos.sdk.entity.EntityRepository
+import io.whozoss.agentos.entity.EntityRepository
 import java.util.UUID
 
 /**
- * Repository for CaseModel persistence.
+ * Repository for [Case] persistence.
  *
- * Parent type is UUID representing the projectId.
+ * Parent type is UUID representing the namespaceId.
  */
-interface CaseRepository : EntityRepository<CaseModel, UUID>
+interface CaseRepository : EntityRepository<Case, UUID>

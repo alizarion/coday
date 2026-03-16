@@ -2,13 +2,11 @@ import { AsyncPipe } from '@angular/common'
 import { HttpClient } from '@angular/common/http'
 import { Component, inject, signal } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
-import { CaseControllerService, CaseModel } from '@whoz-oss/agentos-api-client'
+import { Case, CaseControllerService, Configuration } from '@whoz-oss/agentos-api-client'
 import { Observable } from 'rxjs'
 
 /**
  * CaseListComponent — lists cases for the selected namespace.
- *
- * Appels directs HTTP sur /api/cases (préfixé /api/agentos pour le proxy).
  *
  * Pattern agentique : pas de bouton "Nouveau case" séparé.
  * Le premier message saisi crée le case et navigue vers le chat.
@@ -24,11 +22,12 @@ export class CaseListComponent {
   private readonly http = inject(HttpClient)
   private readonly router = inject(Router)
   private readonly route = inject(ActivatedRoute)
+  private readonly config = inject(Configuration)
   private readonly caseController = inject(CaseControllerService)
 
   private readonly namespaceId = this.route.snapshot.params['namespaceId'] as string
 
-  protected readonly cases$: Observable<CaseModel[]> = this.caseController.listByParent1({ parentId: this.namespaceId })
+  protected readonly cases$: Observable<Case[]> = this.caseController.listByParent1(this.namespaceId)
 
   protected inputValue = signal('')
 
@@ -48,14 +47,14 @@ export class CaseListComponent {
     if (!content) return
 
     this.http
-      .post<CaseModel>('/api/agentos/api/cases', { projectId: this.namespaceId, metadata: {} })
+      .post<Case>(`${this.config.basePath}/api/cases`, { namespaceId: this.namespaceId, metadata: {} })
       .subscribe((createdCase) => {
         this.inputValue.set('')
         this.router.navigate(['/agentos', this.namespaceId, 'cases', createdCase.id])
       })
   }
 
-  protected trackById(_index: number, c: CaseModel): string {
+  protected trackById(_index: number, c: Case): string {
     return c.id
   }
 }

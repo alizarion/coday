@@ -13,7 +13,7 @@ import {
 } from '@coday/model'
 import { AiTools, DelegateTools } from '@coday/integrations-ai'
 import { McpToolsFactory } from '@coday/mcp'
-import { CoreTools, MemoryTools, ProjectScriptsTools, TmuxTools } from '@coday/integration'
+import { CoreTools, MemoryTools, ProjectScriptsTools, ThreadTools, TmuxTools } from '@coday/integration'
 import { FileTools } from '@coday/integrations-file'
 import { GitTools } from '@coday/integrations-git'
 import { GitLabTools } from '@coday/integrations-gitlab'
@@ -22,6 +22,7 @@ import { ZendeskTools } from '@coday/integrations-zendesk-articles'
 import { JiraTools } from '@coday/integrations-jira'
 import { SlackTools } from '@coday/integrations-slack'
 import { BasecampTools } from '@coday/integrations-basecamp'
+import { HttpConfigTools, HttpTools } from '@coday/integrations-http'
 import { CodayServices } from '@coday/coday-services'
 
 export class Toolbox implements Killable {
@@ -59,6 +60,7 @@ export class Toolbox implements Killable {
     this.factoryConstructors.set(FileTools.TYPE, (name, config) => new FileTools(interactor, name, config))
     this.factoryConstructors.set(ProjectScriptsTools.TYPE, (name) => new ProjectScriptsTools(interactor, name, {}))
     this.factoryConstructors.set(MemoryTools.TYPE, (name) => new MemoryTools(interactor, services.memory, name, {}))
+    this.factoryConstructors.set(ThreadTools.TYPE, (name) => new ThreadTools(interactor, services.thread, name, {}))
 
     // Integration tools (require config)
     this.factoryConstructors.set(
@@ -88,6 +90,14 @@ export class Toolbox implements Killable {
     this.factoryConstructors.set(
       BasecampTools.TYPE,
       (name, config) => new BasecampTools(interactor, services.integration, services.user, name, config)
+    )
+    this.factoryConstructors.set(
+      HttpTools.TYPE,
+      (name, config) => new HttpTools(interactor, services.user, name, config)
+    )
+    this.factoryConstructors.set(
+      HttpConfigTools.TYPE,
+      () => new HttpConfigTools(interactor, services.integrationConfig)
     )
     this.factoryConstructors.set(TmuxTools.TYPE, (name) => new TmuxTools(interactor, name))
   }
@@ -123,8 +133,18 @@ export class Toolbox implements Killable {
       }
     } else {
       // No integrations filter: instantiate all known factories (built-in + project integrations)
+      // Note: factoryConstructors keys are TYPE names (e.g. "HTTP", "GIT") while
+      // integration keys are INSTANCE names (e.g. "CALENDAR", "MY_JIRA").
+      // Built-in types that have no matching instance config are still instantiated
+      // (e.g. FILES, CORE) but integration types (HTTP, JIRA...) should only be
+      // instantiated when an actual named instance exists in the project config.
+      const integrationTypes = new Set(
+        Object.values(this.services.integration.integrations)
+          .map((cfg) => cfg?.type)
+          .filter(Boolean)
+      )
       const allInstanceNames = new Set<string>([
-        ...this.factoryConstructors.keys(),
+        ...Array.from(this.factoryConstructors.keys()).filter((type) => !integrationTypes.has(type)),
         ...Object.keys(this.services.integration.integrations),
       ])
       for (const instanceName of allInstanceNames) {
@@ -185,21 +205,35 @@ export class Toolbox implements Killable {
 
   /**
    * Get or create a factory instance by instance name.
-   * Returns undefined if no constructor is registered for the resolved type.
+   * Resolution order:
+   *   1. instanceName itself (exact match in registry)
+   *   2. config.type field (allows HTTP integrations with custom names)
+   * This prevents a user-level config merge from overwriting the 'type' field
+   * of a named integration (e.g. BASECAMP gaining type="HTTP" from a merge)
+   * and accidentally routing it to the wrong factory.
    */
   private createFactory(instanceName: string): AssistantToolFactory | undefined {
     const mergedIntegrations = this.services.integration.integrations
     const config = mergedIntegrations[instanceName] ?? {}
-    const type = mergedIntegrations[instanceName]?.type || instanceName
-    const constructor = this.factoryConstructors.get(type)
+
+    // Prefer the declared type field (e.g. MY_CALENDAR with type=HTTP → HttpTools)
+    // Fall back to instanceName as type (e.g. BASECAMP with no type or corrupted type)
+    const declaredType = mergedIntegrations[instanceName]?.type
+    const byType = declaredType ? this.factoryConstructors.get(declaredType) : undefined
+    const byName = this.factoryConstructors.get(instanceName)
+    const constructor = byType ?? byName
+    const resolvedType = byType ? declaredType : instanceName
+
     if (!constructor) {
-      this.interactor.debug(`No factory constructor for integration type '${type}'`)
+      this.interactor.debug(
+        `No factory constructor for integration '${instanceName}' (type='${declaredType ?? 'none'}')`
+      )
       return undefined
     }
     try {
       const factory = constructor(instanceName, config)
       this.factoryInstances.set(instanceName, factory)
-      this.interactor.debug(`Created integration factory '${instanceName}' of type '${type}'`)
+      this.interactor.debug(`Created integration factory '${instanceName}' of type '${resolvedType}'`)
       return factory
     } catch (error) {
       this.interactor.debug(`Error creating factory for '${instanceName}': ${error}`)

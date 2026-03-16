@@ -70,6 +70,22 @@ export abstract class CodayEvent {
     this.threadId = event.threadId
     this.length = 0
   }
+
+  /**
+   * Parse the timestamp string to a Date.
+   * Timestamps may carry a random 5-char alphanumeric suffix to avoid collisions
+   * (e.g. "2026-02-09T16:57:20.839Z-x81ku"). The suffix is stripped before parsing.
+   */
+  get date(): Date {
+    const lastDash = this.timestamp.lastIndexOf('-')
+    if (lastDash > 0) {
+      const suffix = this.timestamp.substring(lastDash + 1)
+      if (suffix.length === 5 && /^[a-z0-9]+$/.test(suffix)) {
+        return new Date(this.timestamp.substring(0, lastDash))
+      }
+    }
+    return new Date(this.timestamp)
+  }
 }
 
 export abstract class QuestionEvent extends CodayEvent {
@@ -163,12 +179,18 @@ export class ErrorEvent extends CodayEvent {
 export class ChoiceEvent extends QuestionEvent {
   options: string[]
   optionalQuestion: string | undefined
+  /**
+   * When true, the user can also type a free-text answer beyond the provided options.
+   * Defaults to false to preserve backward-compatible closed-choice behaviour.
+   */
+  allowFreeText: boolean
   static override type = 'choice'
 
   constructor(event: Partial<ChoiceEvent>) {
     super(event, ChoiceEvent.type)
     this.options = event.options!!
     this.optionalQuestion = event.optionalQuestion
+    this.allowFreeText = event.allowFreeText ?? false
   }
 }
 
@@ -320,12 +342,14 @@ export class MessageEvent extends CodayEvent {
 export class ThreadUpdateEvent extends CodayEvent {
   override threadId: string
   name?: string
+  summary?: string
   static override type = 'thread_update'
 
   constructor(event: Partial<ThreadUpdateEvent>) {
     super(event, ThreadUpdateEvent.type)
     this.threadId = event.threadId!
     this.name = event.name
+    this.summary = event.summary
   }
 }
 
