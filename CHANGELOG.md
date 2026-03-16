@@ -1,3 +1,13 @@
+## 0.88.0 (2026-03-16)
+
+### 🚀 Features
+
+- update pnpm workspace to have fixed version ([#570](https://github.com/whoz-oss/coday/pull/570))
+
+### ❤️ Thank You
+
+- Charles Monot @charles-monot-whoz
+
 ## 0.87.0 (2026-03-16)
 
 ### 🚀 Features
