@@ -677,6 +677,7 @@ export class AiThread {
       modifiedDate: this.modifiedDate,
       price: this.price,
       starring: this.starring,
+      users: this.users,
       parentThreadId: this.parentThreadId,
       parentEventId: this.parentEventId,
       delegatedAgentName: this.delegatedAgentName,
