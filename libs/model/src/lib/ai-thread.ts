@@ -19,7 +19,7 @@ import {
 
 import { ToolCall, ToolResponse } from './integration-tool-call'
 
-import { EmptyUsage, RunStatus, ThreadMessage, ThreadSerialized, Usage } from './ai-thread.types'
+import { EmptyUsage, RunStatus, ThreadMessage, ThreadSerialized, ThreadUser, Usage } from './ai-thread.types'
 import { partition } from './ai-thread.helpers'
 
 /**
@@ -71,8 +71,8 @@ export class AiThread {
   /** @deprecated Use users instead. Kept for retro-compatibility with persisted threads. */
   username: string
 
-  /** List of usernames who own and have full access to this thread */
-  users: string[] = []
+  /** List of users who own and have full access to this thread */
+  users: ThreadUser[] = []
 
   createdDate: string
   modifiedDate: string
@@ -116,7 +116,7 @@ export class AiThread {
     this.name = thread.name ?? ''
     this.summary = thread.summary ?? ''
     this.starring = thread.starring ?? []
-    this.users = thread.users ?? (thread.username ? [thread.username] : [])
+    this.users = thread.users ?? (thread.username ? [{ userId: thread.username }] : [])
     this.createdDate = thread.createdDate ?? new Date().toISOString()
     this.modifiedDate = thread.modifiedDate ?? this.createdDate
     this.price = thread.price ?? 0
@@ -483,7 +483,7 @@ export class AiThread {
       modifiedDate: new Date().toISOString(),
       price: 0,
       messages: [], // always clean context
-      users: [...this.users],
+      users: this.users.map((u) => ({ ...u })),
       parentThreadId: this.id,
       parentEventId,
       delegatedAgentName: agentName,

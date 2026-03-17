@@ -53,7 +53,11 @@ const addUsersField: Migration = {
     const migrated = { ...aiThread }
     // Initialize users from username if not present
     if (!migrated.users) {
-      migrated.users = migrated.username ? [migrated.username] : []
+      migrated.users = migrated.username ? [{ userId: migrated.username }] : []
+    }
+    // Normalize: if users contains strings (from earlier dev iteration), convert to objects
+    if (Array.isArray(migrated.users)) {
+      migrated.users = migrated.users.map((u: any) => (typeof u === 'string' ? { userId: u } : u))
     }
     return migrated
   },

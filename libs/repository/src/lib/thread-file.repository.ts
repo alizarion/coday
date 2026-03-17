@@ -214,7 +214,11 @@ export class ThreadFileRepository implements ThreadRepository {
                 modifiedDate: data.modifiedDate ?? '',
                 price: data.price ?? 0,
                 starring: data.starring ?? [],
-                users: data.users ?? (data.username ? [data.username] : []),
+                users: Array.isArray(data.users)
+                  ? data.users.map((u: any) => (typeof u === 'string' ? { userId: u } : u))
+                  : data.username
+                    ? [{ userId: data.username }]
+                    : [],
                 parentThreadId: data.parentThreadId,
                 parentEventId: data.parentEventId,
                 delegatedAgentName: data.delegatedAgentName,

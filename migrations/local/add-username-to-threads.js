@@ -29,8 +29,9 @@ async function addUsersToThreads(projectsPath, username) {
               // Determine effective username: use existing field or the provided argument
               const effectiveUsername = data.username || username
 
-              // Initialize users from existing field or from effectiveUsername
-              const users = data.users ?? (effectiveUsername ? [effectiveUsername] : [])
+              // Initialize users from existing field or from effectiveUsername, normalizing to object format
+              const rawUsers = data.users ?? (effectiveUsername ? [effectiveUsername] : [])
+              const users = rawUsers.map((u) => (typeof u === 'string' ? { userId: u } : u))
 
               const modified = { ...data, username: effectiveUsername, users }
 

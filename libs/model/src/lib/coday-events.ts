@@ -1,3 +1,5 @@
+import { ThreadUser } from './ai-thread.types'
+
 export type TextContent = {
   type: 'text'
   content: string
@@ -343,7 +345,7 @@ export class ThreadUpdateEvent extends CodayEvent {
   override threadId: string
   name?: string
   summary?: string
-  users?: string[]
+  users?: ThreadUser[]
   static override type = 'thread_update'
 
   constructor(event: Partial<ThreadUpdateEvent>) {

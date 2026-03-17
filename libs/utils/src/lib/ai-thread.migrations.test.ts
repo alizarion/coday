@@ -341,7 +341,7 @@ describe('AI Thread migrations', () => {
         messages: [],
       }
       const result = migrateData(aiThread, aiThreadMigrations)
-      expect(result.users).toEqual(['alice@example.com'])
+      expect(result.users).toEqual([{ userId: 'alice@example.com' }])
       expect(result.version).toBe(4)
     })
 
@@ -359,11 +359,23 @@ describe('AI Thread migrations', () => {
       const aiThread = {
         id: 'test-thread-id',
         username: 'alice@example.com',
+        users: [{ userId: 'alice@example.com' }, { userId: 'bob@example.com' }],
+        messages: [],
+      }
+      const result = migrateData(aiThread, aiThreadMigrations)
+      expect(result.users).toEqual([{ userId: 'alice@example.com' }, { userId: 'bob@example.com' }])
+      expect(result.version).toBe(4)
+    })
+
+    it('should normalize plain string users array to object array', () => {
+      const aiThread = {
+        id: 'test-thread-id',
+        username: 'alice@example.com',
         users: ['alice@example.com', 'bob@example.com'],
         messages: [],
       }
       const result = migrateData(aiThread, aiThreadMigrations)
-      expect(result.users).toEqual(['alice@example.com', 'bob@example.com'])
+      expect(result.users).toEqual([{ userId: 'alice@example.com' }, { userId: 'bob@example.com' }])
       expect(result.version).toBe(4)
     })
   })
