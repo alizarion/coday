@@ -1,3 +1,15 @@
+## 0.89.1 (2026-03-17)
+
+### 🩹 Fixes
+
+- #576 add missing users field when updating thread cache ([#576](https://github.com/whoz-oss/coday/issues/576))
+- #576 add missing users field when updating thread cache ([#577](https://github.com/whoz-oss/coday/pull/577), [#576](https://github.com/whoz-oss/coday/issues/576))
+
+### ❤️ Thank You
+
+- Mathieu De Armey
+- mathieu_dearmey
+
 ## 0.89.0 (2026-03-17)
 
 ### 🚀 Features
