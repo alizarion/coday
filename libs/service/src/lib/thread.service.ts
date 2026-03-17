@@ -406,19 +406,20 @@ export class ThreadService {
 
     // Update thread list cache
     this.updateThreadInCache(projectName, {
-      id: saved.id,
-      username: saved.username,
-      projectId: saved.projectId,
-      name: saved.name,
-      summary: saved.summary,
       createdDate: saved.createdDate,
-      modifiedDate: saved.modifiedDate,
-      price: saved.price,
-      starring: saved.starring,
-      parentThreadId: saved.parentThreadId,
-      parentEventId: saved.parentEventId,
       delegatedAgentName: saved.delegatedAgentName,
       delegatedTask: saved.delegatedTask,
+      id: saved.id,
+      modifiedDate: saved.modifiedDate,
+      name: saved.name,
+      parentEventId: saved.parentEventId,
+      parentThreadId: saved.parentThreadId,
+      price: saved.price,
+      projectId: saved.projectId,
+      starring: saved.starring,
+      summary: saved.summary,
+      username: saved.username,
+      users: saved.users,
     })
 
     return saved
