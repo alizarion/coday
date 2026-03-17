@@ -1,3 +1,14 @@
+## 0.91.0 (2026-03-17)
+
+### 🚀 Features
+
+- #572 Git Worktree Tool ([#574](https://github.com/whoz-oss/coday/pull/574), [#572](https://github.com/whoz-oss/coday/issues/572))
+
+### ❤️ Thank You
+
+- mathieu_dearmey
+- vincent-audibert-whoz
+
 ## 0.90.0 (2026-03-17)
 
 ### 🚀 Features
