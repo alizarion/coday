@@ -1,3 +1,14 @@
+## 0.92.0 (2026-03-17)
+
+### 🚀 Features
+
+- #567 thread sharing UI and API ([#578](https://github.com/whoz-oss/coday/pull/578), [#567](https://github.com/whoz-oss/coday/issues/567))
+
+### ❤️ Thank You
+
+- Charles Monot @charles-monot-whoz
+- m1
+
 ## 0.91.1 (2026-03-17)
 
 ### 🩹 Fixes
