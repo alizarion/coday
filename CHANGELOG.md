@@ -1,3 +1,13 @@
+## 0.91.1 (2026-03-17)
+
+### 🩹 Fixes
+
+- project-level AI config ignored when no user-level config defined ([#580](https://github.com/whoz-oss/coday/pull/580))
+
+### ❤️ Thank You
+
+- vincent-audibert-whoz
+
 ## 0.91.0 (2026-03-17)
 
 ### 🚀 Features
