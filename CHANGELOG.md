@@ -1,3 +1,13 @@
+## 0.90.0 (2026-03-17)
+
+### 🚀 Features
+
+- #556 flexible mandatory docs — directory listing and glob patterns ([#558](https://github.com/whoz-oss/coday/pull/558), [#556](https://github.com/whoz-oss/coday/issues/556))
+
+### ❤️ Thank You
+
+- vincent-audibert-whoz
+
 ## 0.89.1 (2026-03-17)
 
 ### 🩹 Fixes
