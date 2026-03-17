@@ -1,3 +1,19 @@
+## 0.89.0 (2026-03-17)
+
+### 🚀 Features
+
+- #563 thread access model — users field & shared ownership ([#563](https://github.com/whoz-oss/coday/issues/563))
+- #563 thread access model — users field & shared ownership ([#569](https://github.com/whoz-oss/coday/pull/569), [#563](https://github.com/whoz-oss/coday/issues/563), [#567](https://github.com/whoz-oss/coday/issues/567), [#564](https://github.com/whoz-oss/coday/issues/564), [#565](https://github.com/whoz-oss/coday/issues/565), [#566](https://github.com/whoz-oss/coday/issues/566), [#568](https://github.com/whoz-oss/coday/issues/568))
+
+### 🩹 Fixes
+
+- #563 include users field in AiThread.serialize() output ([#563](https://github.com/whoz-oss/coday/issues/563))
+
+### ❤️ Thank You
+
+- Charles Monot @charles-monot-whoz
+- m1
+
 ## 0.88.0 (2026-03-16)
 
 ### 🚀 Features
