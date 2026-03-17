@@ -1,6 +1,7 @@
 import { ProjectLocalConfig } from '@coday/model'
 import { ConfigMaskingService } from './config-masking.service'
 import * as crypto from 'crypto'
+import * as fsp from 'node:fs/promises'
 import * as path from 'path'
 import { ProjectRepository } from '@coday/repository'
 
@@ -225,6 +226,57 @@ export class ProjectService {
     }
 
     return projectId
+  }
+
+  /**
+   * Register a worktree as a Coday project, copying the parent project's configuration
+   * and overriding only the path. Symlinks shared config artifacts from the parent.
+   * @param projectName Name for the new worktree project
+   * @param worktreePath Filesystem path of the worktree
+   * @param parentProjectName Name of the parent project to copy config from
+   */
+  async registerWorktreeProject(projectName: string, worktreePath: string, parentProjectName: string): Promise<void> {
+    // Copy parent config, override path, strip volatile/worktree-specific fields
+    const parentConfig = this.repository.getConfig(parentProjectName)
+    const worktreeConfig: ProjectLocalConfig = parentConfig
+      ? { ...parentConfig, path: worktreePath, volatile: undefined, createdAt: undefined }
+      : { version: 1, path: worktreePath, integration: {}, storage: { type: 'file' }, agents: [] }
+
+    // createProject is idempotent on the directory; it won't overwrite an existing config file
+    this.repository.createProject(projectName, worktreePath)
+    // Overwrite the config with the properly derived one
+    this.repository.saveConfig(projectName, worktreeConfig)
+
+    // Symlink shared config artifacts from parent project config dir
+    const projectInfo = this.repository.getProjectInfo(parentProjectName)
+    if (projectInfo) {
+      const worktreeInfo = this.repository.getProjectInfo(projectName)
+      if (worktreeInfo) {
+        for (const dir of ['agents', 'prompts', 'schedulers', 'memories', 'threads']) {
+          const parentDir = path.join(projectInfo.configPath, dir)
+          const targetLink = path.join(worktreeInfo.configPath, dir)
+          try {
+            await fsp.access(parentDir)
+            await fsp.symlink(parentDir, targetLink)
+          } catch {
+            // parent dir doesn't exist or symlink already exists — skip
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Unregister a worktree project: removes symlinks and the project config file,
+   * then removes the config directory if empty.
+   * @param projectName Name of the worktree project to remove
+   */
+  async unregisterWorktreeProject(projectName: string): Promise<void> {
+    const projectInfo = this.repository.getProjectInfo(projectName)
+    if (!projectInfo) return
+
+    // deleteProject is currently a no-op in the file repo; remove the whole config directory
+    await fsp.rm(projectInfo.configPath, { recursive: true, force: true })
   }
 
   /**
