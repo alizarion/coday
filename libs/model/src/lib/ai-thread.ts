@@ -19,7 +19,7 @@ import {
 
 import { ToolCall, ToolResponse } from './integration-tool-call'
 
-import { EmptyUsage, RunStatus, ThreadMessage, ThreadSerialized, Usage } from './ai-thread.types'
+import { EmptyUsage, RunStatus, ThreadMessage, ThreadSerialized, ThreadUser, Usage } from './ai-thread.types'
 import { partition } from './ai-thread.helpers'
 
 /**
@@ -56,8 +56,6 @@ export class AiThread {
   /** Unique identifier for the thread */
   id: string
 
-  username: string
-
   /** Project identifier this thread belongs to */
   projectId: string
 
@@ -69,6 +67,12 @@ export class AiThread {
 
   /** List of usernames who starred this thread */
   starring: string[] = []
+
+  /** @deprecated Use users instead. Kept for retro-compatibility with persisted threads. */
+  username: string
+
+  /** List of users who own and have full access to this thread */
+  users: ThreadUser[] = []
 
   createdDate: string
   modifiedDate: string
@@ -107,11 +111,12 @@ export class AiThread {
    */
   constructor(thread: ThreadSerialized) {
     this.id = thread.id
-    this.username = thread.username
+    this.username = thread.username ?? ''
     this.projectId = thread.projectId ?? ''
     this.name = thread.name ?? ''
     this.summary = thread.summary ?? ''
     this.starring = thread.starring ?? []
+    this.users = thread.users ?? (thread.username ? [{ userId: thread.username }] : [])
     this.createdDate = thread.createdDate ?? new Date().toISOString()
     this.modifiedDate = thread.modifiedDate ?? this.createdDate
     this.price = thread.price ?? 0
@@ -478,6 +483,7 @@ export class AiThread {
       modifiedDate: new Date().toISOString(),
       price: 0,
       messages: [], // always clean context
+      users: this.users.map((u) => ({ ...u })),
       parentThreadId: this.id,
       parentEventId,
       delegatedAgentName: agentName,
@@ -671,6 +677,7 @@ export class AiThread {
       modifiedDate: this.modifiedDate,
       price: this.price,
       starring: this.starring,
+      users: this.users,
       parentThreadId: this.parentThreadId,
       parentEventId: this.parentEventId,
       delegatedAgentName: this.delegatedAgentName,

@@ -34,11 +34,20 @@ export type ThreadMessage =
   | DelegationEvent
 
 /**
+ * Represents a user with access to a thread.
+ * Extensible: future fields (role, addedAt, etc.) can be added without migration.
+ */
+export interface ThreadUser {
+  userId: string
+}
+
+/**
  * Serialized representation of a thread for storage
  */
 export type ThreadSerialized = {
   id: string
-  username: string
+  /** @deprecated Use users instead. Kept for retro-compatibility with persisted threads. */
+  username?: string
   projectId?: string
   messages?: any[]
   name?: string
@@ -47,6 +56,7 @@ export type ThreadSerialized = {
   modifiedDate?: string
   price?: number // Total accumulated price for the thread
   starring?: string[] // List of usernames who starred this thread
+  users?: ThreadUser[] // List of users who own and have full access to this thread
   parentThreadId?: string // ID of the parent thread (undefined for root threads)
   parentEventId?: string // Timestamp of the ToolRequestEvent that spawned this sub-thread
   delegatedAgentName?: string // Agent name that was delegated to
@@ -55,6 +65,7 @@ export type ThreadSerialized = {
 
 export interface ThreadSummary {
   id: string
+  /** @deprecated Use users instead. Kept for retro-compatibility. */
   username: string
   projectId: string
   name: string
@@ -63,6 +74,7 @@ export interface ThreadSummary {
   modifiedDate: string
   price: number
   starring: string[] // List of usernames who starred this thread
+  users: ThreadUser[] // List of users who own and have full access to this thread
   parentThreadId?: string // ID of the parent thread (undefined for root threads)
   parentEventId?: string // Timestamp of the ToolRequestEvent that spawned this sub-thread
   delegatedAgentName?: string // Agent name that was delegated to

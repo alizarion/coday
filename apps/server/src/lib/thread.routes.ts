@@ -9,6 +9,7 @@ import { CodayOptions } from '@coday/model'
 import { MAX_FILE_SIZE, isFileExtensionAllowed, getAllowedExtensionsString } from '@coday/model'
 import { ThreadService } from '@coday/service'
 import { ThreadFileService } from '@coday/service'
+import { hasAccess } from '@coday/model'
 
 /**
  * Thread Management REST API Routes
@@ -153,8 +154,8 @@ export function registerThreadRoutes(
         return
       }
 
-      // Verify user owns this thread
-      if (thread.username !== username) {
+      // Verify user has access to this thread
+      if (!hasAccess(thread, username)) {
         res.status(403).json({ error: 'Access denied: thread belongs to another user' })
         return
       }
@@ -207,7 +208,7 @@ export function registerThreadRoutes(
         return
       }
 
-      if (existingThread.username !== username) {
+      if (!hasAccess(existingThread, username)) {
         res.status(403).json({ error: 'Access denied: thread belongs to another user' })
         return
       }
@@ -371,7 +372,7 @@ export function registerThreadRoutes(
    * POST /api/projects/:projectName/threads/:threadId/stop
    * Stop the current run for a thread
    */
-  app.post('/api/projects/:projectName/threads/:threadId/stop', (req: express.Request, res: express.Response) => {
+  app.post('/api/projects/:projectName/threads/:threadId/stop', async (req: express.Request, res: express.Response) => {
     try {
       const projectName = getParamAsString(req.params.projectName)
       const threadId = getParamAsString(req.params.threadId)
@@ -383,6 +384,17 @@ export function registerThreadRoutes(
       const username = getUsernameFn(req)
       if (!username) {
         res.status(401).json({ error: 'Authentication required' })
+        return
+      }
+
+      // Verify thread access before stopping
+      const thread = await threadService.getThread(projectName, threadId)
+      if (!thread) {
+        res.status(404).json({ error: `Thread '${threadId}' not found in project '${projectName}'` })
+        return
+      }
+      if (!hasAccess(thread, username)) {
+        res.status(403).json({ error: 'Access denied: thread belongs to another user' })
         return
       }
 
@@ -426,7 +438,7 @@ export function registerThreadRoutes(
         return
       }
 
-      if (existingThread.username !== username) {
+      if (!hasAccess(existingThread, username)) {
         res.status(403).json({ error: 'Access denied: thread belongs to another user' })
         return
       }
@@ -505,8 +517,9 @@ export function registerThreadRoutes(
           return
         }
 
-        // Verify thread ownership
-        if (instance.username !== username) {
+        // Verify thread access
+        const threadForAccess = await threadService.getThread(projectName, threadId)
+        if (!threadForAccess || !hasAccess(threadForAccess, username)) {
           res.status(403).json({ error: 'Access denied: thread belongs to another user' })
           return
         }
@@ -610,7 +623,7 @@ export function registerThreadRoutes(
         return
       }
 
-      if (thread.username !== username) {
+      if (!hasAccess(thread, username)) {
         res.status(403).json({ error: 'Access denied: thread belongs to another user' })
         return
       }
@@ -656,7 +669,7 @@ export function registerThreadRoutes(
           return
         }
 
-        if (thread.username !== username) {
+        if (!hasAccess(thread, username)) {
           res.status(403).json({ error: 'Access denied: thread belongs to another user' })
           return
         }
@@ -727,7 +740,7 @@ export function registerThreadRoutes(
           return
         }
 
-        if (thread.username !== username) {
+        if (!hasAccess(thread, username)) {
           res.status(403).json({ error: 'Access denied: thread belongs to another user' })
           return
         }
