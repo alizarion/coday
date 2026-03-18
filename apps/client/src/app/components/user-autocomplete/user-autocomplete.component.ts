@@ -1,12 +1,12 @@
-import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core'
-import { AutocompleteInputComponent, AutocompleteItem } from '@whoz-oss/design-system'
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core'
+import { Observable, map } from 'rxjs'
+import { AutocompleteDataSource, AutocompleteInputComponent, AutocompleteItem } from '@whoz-oss/design-system'
 import { UserApiService } from '../../core/services/user-api.service'
-import { UserAutocompleteSource } from './user-autocomplete-source'
 
 /**
  * UserAutocompleteComponent — user search autocomplete.
  *
- * Wraps ds-autocomplete-input with a UserAutocompleteSource data source.
+ * Extends AutocompleteDataSource directly so the component IS the data source.
  * Consumers provide an exclusion list and react to user selection.
  *
  * @example
@@ -21,14 +21,14 @@ import { UserAutocompleteSource } from './user-autocomplete-source'
   imports: [AutocompleteInputComponent],
   template: `
     <ds-autocomplete-input
-      [dataSource]="dataSource"
+      [dataSource]="this"
       [placeholder]="placeholder"
       [disabled]="disabled"
       (itemSelected)="onItemSelected($event)"
     />
   `,
 })
-export class UserAutocompleteComponent implements OnInit {
+export class UserAutocompleteComponent extends AutocompleteDataSource {
   @Input() excludedUserIds: string[] = []
   @Input() placeholder: string = 'Search username'
   @Input() disabled: boolean = false
@@ -37,10 +37,16 @@ export class UserAutocompleteComponent implements OnInit {
 
   private readonly userApi = inject(UserApiService)
 
-  protected dataSource!: UserAutocompleteSource
-
-  ngOnInit(): void {
-    this.dataSource = new UserAutocompleteSource(this.userApi, () => this.excludedUserIds)
+  search(query: string): Observable<AutocompleteItem[]> {
+    const lowerQuery = query.toLowerCase()
+    return this.userApi.listUsers().pipe(
+      map((users) =>
+        users
+          .filter((u) => !this.excludedUserIds.includes(u.username))
+          .filter((u) => u.username.toLowerCase().includes(lowerQuery))
+          .map((u) => ({ id: u.username, name: u.username }))
+      )
+    )
   }
 
   protected onItemSelected(item: AutocompleteItem): void {
