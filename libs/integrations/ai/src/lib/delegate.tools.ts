@@ -15,6 +15,7 @@ import { delegateFunction } from './delegate.function'
 type Delegation = {
   agentName: string
   task: string
+  threadId?: string
 }
 
 export class DelegateTools extends AssistantToolFactory {
@@ -106,6 +107,10 @@ export class DelegateTools extends AssistantToolFactory {
                   task: {
                     type: 'string',
                     description: `Self-contained task description including:\n                      - Intent and objectives\n                      - All relevant context and background\n                      - Constraints and requirements\n                      - Definition of done\n                      - Any file paths, references, or data needed\n                      \n                      Rephrase as if you are the originator of the task.`,
+                  },
+                  threadId: {
+                    type: 'string',
+                    description: `Optional: ID of an existing thread to resume. When provided, the agent runs in that thread's full existing context — do NOT repeat prior work or context in the task, only describe the new work needed. When omitted, a fresh isolated sub-thread is created.`,
                   },
                 },
                 required: ['agentName', 'task'],
