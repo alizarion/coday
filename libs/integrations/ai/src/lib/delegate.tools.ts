@@ -110,7 +110,7 @@ export class DelegateTools extends AssistantToolFactory {
                   },
                   threadId: {
                     type: 'string',
-                    description: `Optional: ID of an existing thread to resume. When provided, the agent runs in that thread's full existing context — do NOT repeat prior work or context in the task, only describe the new work needed. When omitted, a fresh isolated sub-thread is created.`,
+                    description: `Optional: ID of an existing thread to resume. When provided, the named agent runs in that thread's full existing context — do NOT repeat prior work or context in the task, only describe the new work needed. The agent does not need to match the one that originally worked on the thread — any agent can be directed into an existing thread's context. When omitted, a fresh isolated sub-thread is created.`,
                   },
                 },
                 required: ['agentName', 'task'],
@@ -127,7 +127,7 @@ export class DelegateTools extends AssistantToolFactory {
       type: 'function',
       function: {
         name: `${this.name}__list_sub_threads`,
-        description: `List all sub-threads previously spawned by delegations from the current thread. Returns threadId, agent name, task summary, and last modified date. Always call this before resuming a delegation — use the returned threadId in the delegate tool instead of re-describing prior context.`,
+        description: `List all sub-threads previously spawned by delegations from the current thread. Returns threadId, agent name, task summary, and last modified date. Always call this before resuming a delegation — use the returned threadId in the delegate tool instead of re-describing prior context. The agent field shows who originally worked on the thread, but any agent can be asked to resume it.`,
         parameters: {
           type: 'object',
           properties: {},
