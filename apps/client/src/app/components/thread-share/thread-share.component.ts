@@ -1,10 +1,8 @@
-import { Component, EventEmitter, inject, Input, OnInit, Output, signal } from '@angular/core'
+import { Component, EventEmitter, Input, Output, signal } from '@angular/core'
 import { MatIconModule } from '@angular/material/icon'
 import { MatButtonModule } from '@angular/material/button'
 import { MatTooltipModule } from '@angular/material/tooltip'
-import { AutocompleteInputComponent, AutocompleteItem } from '@whoz-oss/design-system'
-import { UserApiService } from '../../core/services/user-api.service'
-import { UserAutocompleteSource } from '../../core/services/user-autocomplete-source'
+import { UserAutocompleteComponent } from '../user-autocomplete/user-autocomplete.component'
 
 /**
  * ThreadShareComponent - Manages thread participant sharing
@@ -19,11 +17,11 @@ import { UserAutocompleteSource } from '../../core/services/user-autocomplete-so
 @Component({
   selector: 'app-thread-share',
   standalone: true,
-  imports: [MatIconModule, MatButtonModule, MatTooltipModule, AutocompleteInputComponent],
+  imports: [MatIconModule, MatButtonModule, MatTooltipModule, UserAutocompleteComponent],
   templateUrl: './thread-share.component.html',
   styleUrl: './thread-share.component.scss',
 })
-export class ThreadShareComponent implements OnInit {
+export class ThreadShareComponent {
   @Input({ required: true }) threadId!: string
   @Input({ required: true }) users: { userId: string }[] = []
   @Input({ required: true }) ownerUsername!: string
@@ -32,9 +30,6 @@ export class ThreadShareComponent implements OnInit {
   @Output() userAdded = new EventEmitter<string>()
   @Output() userRemoved = new EventEmitter<string>()
 
-  private readonly userApi = inject(UserApiService)
-
-  protected userAutocompleteSource!: UserAutocompleteSource
   protected readonly isAdding = signal(false)
   protected readonly errorMessage = signal('')
 
@@ -42,11 +37,8 @@ export class ThreadShareComponent implements OnInit {
     return this.currentUsername === this.ownerUsername
   }
 
-  ngOnInit(): void {
-    this.userAutocompleteSource = new UserAutocompleteSource(this.userApi, () => [
-      this.currentUsername,
-      ...this.users.map((u) => u.userId),
-    ])
+  get excludedUserIds(): string[] {
+    return [this.currentUsername, ...this.users.map((u) => u.userId)]
   }
 
   /** Called by parent to drive loading state during async add operation */
@@ -60,9 +52,9 @@ export class ThreadShareComponent implements OnInit {
     this.isAdding.set(false)
   }
 
-  onItemSelected(item: AutocompleteItem): void {
+  onUserSelected(userId: string): void {
     this.errorMessage.set('')
-    this.userAdded.emit(item.id)
+    this.userAdded.emit(userId)
     // isAdding will be set to true by parent via setAdding(true)
   }
 

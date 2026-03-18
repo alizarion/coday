@@ -56,8 +56,14 @@ export function registerUserRoutes(
    * GET /api/users
    * List all known usernames by scanning the users directory
    */
-  app.get('/api/users', (_req: express.Request, res: express.Response) => {
+  app.get('/api/users', (req: express.Request, res: express.Response) => {
     try {
+      const username = getUsernameFn(req)
+      if (!username) {
+        res.status(401).json({ error: 'Authentication required' })
+        return
+      }
+
       const usersDir = path.join(configDir, 'users')
 
       if (!fs.existsSync(usersDir)) {

@@ -7,11 +7,10 @@
   <!-- Add user input (owner only) -->
   @if (isOwner) {
     <div class="add-user-section">
-      <ds-autocomplete-input
-        [dataSource]="userAutocompleteSource"
-        placeholder="Search username"
+      <app-user-autocomplete
+        [excludedUserIds]="excludedUserIds"
         [disabled]="isAdding()"
-        (itemSelected)="onItemSelected($event)"
+        (userSelected)="onUserSelected($event)"
       />
     </div>
     @if (errorMessage()) {

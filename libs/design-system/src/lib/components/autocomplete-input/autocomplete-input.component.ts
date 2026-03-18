@@ -1,6 +1,4 @@
-import { Component, DestroyRef, ElementRef, EventEmitter, inject, Input, OnInit, Output } from '@angular/core'
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
-import { Subject, switchMap, debounceTime, distinctUntilChanged, of } from 'rxjs'
+import { Component, ElementRef, EventEmitter, inject, Input, Output } from '@angular/core'
 import { AutocompleteDataSource, AutocompleteItem } from './autocomplete-data-source'
 
 /**
@@ -26,14 +24,13 @@ import { AutocompleteDataSource, AutocompleteItem } from './autocomplete-data-so
   templateUrl: './autocomplete-input.component.html',
   styleUrl: './autocomplete-input.component.scss',
 })
-export class AutocompleteInputComponent implements OnInit {
+export class AutocompleteInputComponent {
   @Input({ required: true }) dataSource!: AutocompleteDataSource
   @Input() placeholder: string = ''
   @Input() disabled: boolean = false
 
   @Output() itemSelected = new EventEmitter<AutocompleteItem>()
 
-  private readonly destroyRef = inject(DestroyRef)
   private readonly elementRef = inject(ElementRef)
 
   protected query: string = ''
@@ -41,30 +38,20 @@ export class AutocompleteInputComponent implements OnInit {
   protected showDropdown: boolean = false
   protected selectedIndex: number = -1
 
-  private readonly query$ = new Subject<string>()
-
-  ngOnInit(): void {
-    this.query$
-      .pipe(
-        debounceTime(250),
-        distinctUntilChanged(),
-        switchMap((q) => (q.trim() ? this.dataSource.search(q) : of([]))),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe((results) => {
-        this.items = results
-        this.selectedIndex = -1
-        this.showDropdown = results.length > 0
-      })
-  }
-
   protected onInput(event: Event): void {
     this.query = (event.target as HTMLInputElement).value
-    this.query$.next(this.query)
+    const trimmed = this.query.trim()
 
-    if (!this.query.trim()) {
+    if (!trimmed) {
       this.closeDropdown()
+      return
     }
+
+    this.dataSource.search(trimmed).subscribe((results) => {
+      this.items = results
+      this.selectedIndex = -1
+      this.showDropdown = results.length > 0
+    })
   }
 
   protected onFocus(): void {
@@ -74,7 +61,7 @@ export class AutocompleteInputComponent implements OnInit {
   }
 
   protected onBlur(): void {
-    // Delay to allow mousedown on dropdown items to fire first
+    // Delay to allow mousedown/touchstart on dropdown items to fire first
     setTimeout(() => this.closeDropdown(), 150)
   }
 

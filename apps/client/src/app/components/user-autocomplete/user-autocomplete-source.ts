@@ -1,6 +1,6 @@
 import { Observable, map } from 'rxjs'
 import { AutocompleteDataSource, AutocompleteItem } from '@whoz-oss/design-system'
-import { UserApiService } from './user-api.service'
+import { UserApiService } from '../../core/services/user-api.service'
 
 /**
  * Autocomplete data source for user search.
