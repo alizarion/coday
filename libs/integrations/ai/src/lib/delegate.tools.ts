@@ -14,6 +14,7 @@ import { delegateFunction } from './delegate.function'
 type Delegation = {
   agentName: string
   task: string
+  threadId?: string // Optional: resume an existing thread instead of forking a new one
 }
 
 export class DelegateTools extends AssistantToolFactory {
@@ -96,6 +97,8 @@ export class DelegateTools extends AssistantToolFactory {
             
             IMPORTANT: The delegated agents will perform ALL actions required (file operations, git, etc.).
             Assess the results and call again if needed — agents maintain their own isolated context across calls.
+            
+            To continue work in an existing sub-thread, provide its threadId. The result of each delegation includes the threadId used, which can be stored for future calls.
 `,
         parameters: {
           type: 'object',
@@ -120,6 +123,10 @@ export class DelegateTools extends AssistantToolFactory {
                       - Any file paths, references, or data needed
                       
                       Rephrase as if you are the originator of the task.`,
+                  },
+                  threadId: {
+                    type: 'string',
+                    description: `Optional: ID of an existing thread to resume. When provided, the task runs in that thread's existing context (preserving history and prior work). When omitted, a fresh isolated sub-thread is created. Use this for iterative delegation — call the same agent on the same thread multiple times to build context progressively.`,
                   },
                 },
                 required: ['agentName', 'task'],
