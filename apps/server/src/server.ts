@@ -55,7 +55,9 @@ const loggingEnabled = !codayOptions.noLog
 const logger = new CodayLoggerUtils(loggingEnabled, codayOptions.logFolder)
 debugLog(
   'INIT',
-  `Usage logging ${loggingEnabled ? 'enabled' : 'disabled'} ${codayOptions.logFolder ? `(custom folder: ${codayOptions.logFolder})` : ''}`
+  `Usage logging ${loggingEnabled ? 'enabled' : 'disabled'} ${
+    codayOptions.logFolder ? `(custom folder: ${codayOptions.logFolder})` : ''
+  }`
 )
 
 // Create webhook service instance (delegates to prompt execution)
@@ -307,7 +309,7 @@ const schedulerService = new SchedulerService(logger, promptService, codayOption
 registerSchedulerRoutes(app, schedulerService, getUsername)
 
 // Register token usage reporting routes
-registerTokenUsageRoutes(app, logger, getUsername)
+registerTokenUsageRoutes(app, logger, getUsername, codayOptions.auth)
 
 // Catch-all route for Angular client-side routing (MUST be after all API routes)
 // In production mode, serve index.html for any non-API routes
