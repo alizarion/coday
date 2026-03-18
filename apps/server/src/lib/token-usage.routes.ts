@@ -60,6 +60,13 @@ function groupKey(agent: string, provider: string, model: string): string {
   return `${agent}|${provider}|${model}`
 }
 
+function isEntryVisibleToUser(entry: AgentUsageEntry, username: string, authEnabled: boolean): boolean {
+  if (entry.type !== 'AGENT_USAGE') return false
+  if (entry.username === username) return true
+  // Only allow the legacy no_username bucket when auth is disabled
+  return !authEnabled && entry.username === 'no_username'
+}
+
 /**
  * Register token usage reporting routes.
  *
@@ -72,7 +79,8 @@ function groupKey(agent: string, provider: string, model: string): string {
 export function registerTokenUsageRoutes(
   app: express.Application,
   logger: CodayLogger,
-  getUsernameFn: (req: express.Request) => string
+  getUsernameFn: (req: express.Request) => string,
+  authEnabled: boolean
 ): void {
   /**
    * GET /api/token-usage
@@ -86,9 +94,7 @@ export function registerTokenUsageRoutes(
       debugLog('TOKEN_USAGE', `GET /api/token-usage from=${from.toISOString()} to=${to.toISOString()} user=${username}`)
 
       const allEntries = await logger.readLogs(from, to)
-      const entries: AgentUsageEntry[] = allEntries.filter(
-        (e) => e.type === 'AGENT_USAGE' && (e.username === username || e.username === 'no_username')
-      )
+      const entries: AgentUsageEntry[] = allEntries.filter((e) => isEntryVisibleToUser(e, username, authEnabled))
 
       const map = new Map<string, ModelAggregate>()
 
@@ -169,9 +175,7 @@ export function registerTokenUsageRoutes(
       )
 
       const allEntries = await logger.readLogs(from, to)
-      const entries: AgentUsageEntry[] = allEntries.filter(
-        (e) => e.type === 'AGENT_USAGE' && (e.username === username || e.username === 'no_username')
-      )
+      const entries: AgentUsageEntry[] = allEntries.filter((e) => isEntryVisibleToUser(e, username, authEnabled))
 
       // Group by date + (agent, provider, model)
       const map = new Map<string, SeriesEntry>()
