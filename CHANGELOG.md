@@ -1,3 +1,15 @@
+## 0.92.1 (2026-03-18)
+
+### 🩹 Fixes
+
+- #589 exclude no_username logs from per-user token usage in auth mode ([#589](https://github.com/whoz-oss/coday/issues/589))
+- #589 exclude no_username logs from per-user token usage in auth mode ([#591](https://github.com/whoz-oss/coday/pull/591), [#589](https://github.com/whoz-oss/coday/issues/589))
+
+### ❤️ Thank You
+
+- Mathieu De Armey
+- mathieu_dearmey
+
 ## 0.92.0 (2026-03-17)
 
 ### 🚀 Features
