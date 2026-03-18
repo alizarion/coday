@@ -1,3 +1,13 @@
+## 0.94.0 (2026-03-18)
+
+### 🚀 Features
+
+- #584 isolate worktree threads and migrate on removal ([#587](https://github.com/whoz-oss/coday/pull/587), [#584](https://github.com/whoz-oss/coday/issues/584))
+
+### ❤️ Thank You
+
+- vincent-audibert-whoz
+
 ## 0.93.0 (2026-03-18)
 
 ### 🚀 Features
