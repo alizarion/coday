@@ -1,6 +1,7 @@
 import {
   Agent,
   AgentSummary,
+  AiThread,
   AssistantToolFactory,
   CodayTool,
   CommandContext,
@@ -14,7 +15,6 @@ import { delegateFunction } from './delegate.function'
 type Delegation = {
   agentName: string
   task: string
-  threadId?: string // Optional: resume an existing thread instead of forking a new one
 }
 
 export class DelegateTools extends AssistantToolFactory {
@@ -48,6 +48,7 @@ export class DelegateTools extends AssistantToolFactory {
     _agentName: string,
     allowedAgentNames?: string[]
   ): Promise<CodayTool[]> {
+    const projectName = context.project.name
     const allowList =
       allowedAgentNames && allowedAgentNames.length > 0
         ? allowedAgentNames.map((name) => name.trim().toLowerCase()).filter(Boolean)
@@ -70,7 +71,7 @@ export class DelegateTools extends AssistantToolFactory {
       threadService: this.threadService,
     })
 
-    const delegateWithAllowList = async ({ delegations }: { delegations: Delegation[] }) => {
+    const delegateWithAllowList = async ({ delegations }: { delegations: Delegation[] }, thread?: AiThread) => {
       // Enforce allow-list per delegation
       if (allowList) {
         const denied = delegations.filter((d) => !allowList.includes(d.agentName.toLowerCase()))
@@ -81,25 +82,14 @@ export class DelegateTools extends AssistantToolFactory {
           return msg
         }
       }
-      return delegate({ delegations })
+      return delegate({ delegations }, thread)
     }
 
     const delegateTool: FunctionTool<{ delegations: Delegation[] }> = {
       type: 'function',
       function: {
         name: `${this.name}__delegate`,
-        description: `Delegate one or more tasks to available agents, running them in parallel. Available agents:
-            ${agentListText || '(No allowed agents for delegation)'}
-            
-            Each delegation runs in an isolated sub-thread with clean context (no parent conversation history).
-            Task descriptions must be exhaustive and self-contained — include all context, constraints, and requirements.
-            Delegations execute in parallel; results are aggregated and returned.
-            
-            IMPORTANT: The delegated agents will perform ALL actions required (file operations, git, etc.).
-            Assess the results and call again if needed — agents maintain their own isolated context across calls.
-            
-            To continue work in an existing sub-thread, provide its threadId. The result of each delegation includes the threadId used, which can be stored for future calls.
-`,
+        description: `Delegate one or more tasks to available agents, running them in parallel. Available agents:\n            ${agentListText || '(No allowed agents for delegation)'}\n            \n            Each delegation runs in an isolated sub-thread with clean context (no parent conversation history).\n            Task descriptions must be exhaustive and self-contained — include all context, constraints, and requirements.\n            Delegations execute in parallel; results are aggregated and returned.\n            \n            IMPORTANT: The delegated agents will perform ALL actions required (file operations, git, etc.).\n            Assess the results and call again if needed — agents maintain their own isolated context across calls.\n            To resume a previous delegation, use list_sub_threads to discover existing sub-thread IDs, then pass the threadId here.\n`,
         parameters: {
           type: 'object',
           properties: {
@@ -115,18 +105,7 @@ export class DelegateTools extends AssistantToolFactory {
                   },
                   task: {
                     type: 'string',
-                    description: `Self-contained task description including:
-                      - Intent and objectives
-                      - All relevant context and background
-                      - Constraints and requirements
-                      - Definition of done
-                      - Any file paths, references, or data needed
-                      
-                      Rephrase as if you are the originator of the task.`,
-                  },
-                  threadId: {
-                    type: 'string',
-                    description: `Optional: ID of an existing thread to resume. When provided, the task runs in that thread's existing context (preserving history and prior work). When omitted, a fresh isolated sub-thread is created. Use this for iterative delegation — call the same agent on the same thread multiple times to build context progressively.`,
+                    description: `Self-contained task description including:\n                      - Intent and objectives\n                      - All relevant context and background\n                      - Constraints and requirements\n                      - Definition of done\n                      - Any file paths, references, or data needed\n                      \n                      Rephrase as if you are the originator of the task.`,
                   },
                 },
                 required: ['agentName', 'task'],
@@ -139,6 +118,43 @@ export class DelegateTools extends AssistantToolFactory {
       },
     }
 
-    return [delegateTool]
+    const listSubThreadsTool: FunctionTool<Record<string, never>> = {
+      type: 'function',
+      function: {
+        name: `${this.name}__list_sub_threads`,
+        description: `List all sub-threads that were previously spawned by delegations from the current thread. Returns each sub-thread's id, agent name, task summary, and last modified date. Use this to find the threadId of a previous delegation so you can resume it by passing that threadId to the delegate tool.`,
+        parameters: {
+          type: 'object',
+          properties: {},
+        },
+        parse: JSON.parse,
+        function: async (_args: Record<string, never>, thread?: AiThread) => {
+          const parentThread = thread ?? context.aiThread
+          if (!parentThread) {
+            return 'No active thread context available.'
+          }
+          try {
+            const allThreads = await this.threadService.listThreads(projectName, context.username)
+            const subThreads = allThreads.filter((t) => t.parentThreadId === parentThread.id)
+            if (!subThreads.length) {
+              return 'No sub-threads found for the current thread.'
+            }
+            return subThreads
+              .sort((a, b) => (a.modifiedDate > b.modifiedDate ? -1 : 1))
+              .map(
+                (t) =>
+                  `- threadId: ${t.id}\n  agent: ${t.delegatedAgentName || '(unknown)'}\n  task: ${t.delegatedTask || '(no task)'}\n  modified: ${t.modifiedDate}`
+              )
+              .join('\n\n')
+          } catch (error) {
+            const msg = `Failed to list sub-threads: ${error instanceof Error ? error.message : 'Unknown error'}`
+            this.interactor.error(msg)
+            return msg
+          }
+        },
+      },
+    }
+
+    return [delegateTool, listSubThreadsTool]
   }
 }
