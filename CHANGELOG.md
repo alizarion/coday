@@ -1,3 +1,14 @@
+## 0.93.0 (2026-03-18)
+
+### 🚀 Features
+
+- #585 move PM agent to dedicated file with GIT_WORKTREE integration ([#586](https://github.com/whoz-oss/coday/pull/586), [#585](https://github.com/whoz-oss/coday/issues/585))
+- #583 restrict worktree mutating commands in generic git tool ([#588](https://github.com/whoz-oss/coday/pull/588), [#583](https://github.com/whoz-oss/coday/issues/583))
+
+### ❤️ Thank You
+
+- vincent-audibert-whoz
+
 ## 0.92.1 (2026-03-18)
 
 ### 🩹 Fixes
