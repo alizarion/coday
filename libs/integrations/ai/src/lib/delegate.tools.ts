@@ -89,7 +89,7 @@ export class DelegateTools extends AssistantToolFactory {
       type: 'function',
       function: {
         name: `${this.name}__delegate`,
-        description: `Delegate one or more tasks to available agents, running them in parallel. Available agents:\n            ${agentListText || '(No allowed agents for delegation)'}\n            \n            Each delegation runs in an isolated sub-thread with clean context (no parent conversation history).\n            Task descriptions must be exhaustive and self-contained — include all context, constraints, and requirements.\n            Delegations execute in parallel; results are aggregated and returned.\n            \n            IMPORTANT: The delegated agents will perform ALL actions required (file operations, git, etc.).\n            Assess the results and call again if needed — agents maintain their own isolated context across calls.\n            To resume a previous delegation, use list_sub_threads to discover existing sub-thread IDs, then pass the threadId here.\n`,
+        description: `Delegate one or more tasks to available agents, running them in parallel. Available agents:\n            ${agentListText || '(No allowed agents for delegation)'}\n            \n            Each delegation runs in an isolated sub-thread with clean context (no parent conversation history).\n            Task descriptions must be exhaustive and self-contained — include all context, constraints, and requirements.\n            Delegations execute in parallel; results are aggregated and returned.\n            \n            IMPORTANT: The delegated agents will perform ALL actions required (file operations, git, etc.).\n            Assess the results and call again if needed — agents maintain their own isolated context across calls.\n            To resume a previous delegation: call list_sub_threads first to get the threadId, then pass it here. IMPORTANT: when resuming with a threadId, do NOT copy prior context into the task — the agent already has its full thread history. Only describe what NEW work is needed.\n`,
         parameters: {
           type: 'object',
           properties: {
@@ -122,7 +122,7 @@ export class DelegateTools extends AssistantToolFactory {
       type: 'function',
       function: {
         name: `${this.name}__list_sub_threads`,
-        description: `List all sub-threads that were previously spawned by delegations from the current thread. Returns each sub-thread's id, agent name, task summary, and last modified date. Use this to find the threadId of a previous delegation so you can resume it by passing that threadId to the delegate tool.`,
+        description: `List all sub-threads previously spawned by delegations from the current thread. Returns threadId, agent name, task summary, and last modified date. Always call this before resuming a delegation — use the returned threadId in the delegate tool instead of re-describing prior context.`,
         parameters: {
           type: 'object',
           properties: {},
