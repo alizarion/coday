@@ -6,7 +6,7 @@ import { UserApiService } from '../../core/services/user-api.service'
 /**
  * UserAutocompleteComponent — user search autocomplete.
  *
- * Extends AutocompleteDataSource directly so the component IS the data source.
+ * Implements AutocompleteDataSource directly so the component IS the data source.
  * Consumers provide an exclusion list and react to user selection.
  *
  * @example
@@ -19,6 +19,7 @@ import { UserApiService } from '../../core/services/user-api.service'
   selector: 'app-user-autocomplete',
   standalone: true,
   imports: [AutocompleteInputComponent],
+  styles: [':host { display: block; }'],
   template: `
     <ds-autocomplete-input
       [dataSource]="this"
@@ -28,7 +29,7 @@ import { UserApiService } from '../../core/services/user-api.service'
     />
   `,
 })
-export class UserAutocompleteComponent extends AutocompleteDataSource {
+export class UserAutocompleteComponent implements AutocompleteDataSource {
   @Input() excludedUserIds: string[] = []
   @Input() placeholder: string = 'Search username'
   @Input() disabled: boolean = false

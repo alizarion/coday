@@ -1,10 +1,13 @@
-import { Component, ElementRef, EventEmitter, inject, Input, Output } from '@angular/core'
+import { Component, DestroyRef, ElementRef, EventEmitter, inject, Input, OnInit, Output } from '@angular/core'
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop'
+import { Subject, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs'
 import { AutocompleteDataSource, AutocompleteItem } from './autocomplete-data-source'
 
 /**
  * AutocompleteInputComponent — a generic, self-contained autocomplete text input.
  *
  * Accepts a pluggable `AutocompleteDataSource` to decouple search logic from the UI.
+ * Debounces keystrokes and cancels stale in-flight searches via switchMap.
  * Emits `itemSelected` when the user picks a suggestion; clears its own state afterwards.
  *
  * CSS contract: relies on --color-border, --color-primary, --color-bg-surface,
@@ -24,7 +27,7 @@ import { AutocompleteDataSource, AutocompleteItem } from './autocomplete-data-so
   templateUrl: './autocomplete-input.component.html',
   styleUrl: './autocomplete-input.component.scss',
 })
-export class AutocompleteInputComponent {
+export class AutocompleteInputComponent implements OnInit {
   @Input({ required: true }) dataSource!: AutocompleteDataSource
   @Input() placeholder: string = ''
   @Input() disabled: boolean = false
@@ -32,26 +35,38 @@ export class AutocompleteInputComponent {
   @Output() itemSelected = new EventEmitter<AutocompleteItem>()
 
   private readonly elementRef = inject(ElementRef)
+  private readonly destroyRef = inject(DestroyRef)
+  private readonly query$ = new Subject<string>()
 
   protected query: string = ''
   protected items: AutocompleteItem[] = []
   protected showDropdown: boolean = false
   protected selectedIndex: number = -1
 
+  ngOnInit(): void {
+    this.query$
+      .pipe(
+        debounceTime(200),
+        distinctUntilChanged(),
+        switchMap((q) => {
+          const trimmed = q.trim()
+          if (!trimmed) {
+            return of([] as AutocompleteItem[])
+          }
+          return this.dataSource.search(trimmed)
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((results) => {
+        this.items = results
+        this.selectedIndex = -1
+        this.showDropdown = results.length > 0
+      })
+  }
+
   protected onInput(event: Event): void {
     this.query = (event.target as HTMLInputElement).value
-    const trimmed = this.query.trim()
-
-    if (!trimmed) {
-      this.closeDropdown()
-      return
-    }
-
-    this.dataSource.search(trimmed).subscribe((results) => {
-      this.items = results
-      this.selectedIndex = -1
-      this.showDropdown = results.length > 0
-    })
+    this.query$.next(this.query)
   }
 
   protected onFocus(): void {

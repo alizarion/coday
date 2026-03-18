@@ -13,11 +13,11 @@ export interface AutocompleteItem {
 }
 
 /**
- * Abstract data source for the autocomplete component.
- * Implement this to provide domain-specific autocomplete suggestions.
+ * Data source contract for the autocomplete component.
+ * Implement this interface to provide domain-specific autocomplete suggestions.
  *
  * @example
- * class UserAutocompleteSource extends AutocompleteDataSource {
+ * class UserAutocompleteComponent implements AutocompleteDataSource {
  *   search(query: string): Observable<AutocompleteItem[]> {
  *     return this.userApi.listUsers().pipe(
  *       map(users => users.filter(u => u.username.includes(query)))
@@ -25,6 +25,6 @@ export interface AutocompleteItem {
  *   }
  * }
  */
-export abstract class AutocompleteDataSource {
-  abstract search(query: string): Observable<AutocompleteItem[]>
+export interface AutocompleteDataSource {
+  search(query: string): Observable<AutocompleteItem[]>
 }
