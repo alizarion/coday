@@ -41,9 +41,9 @@ export class DelegationInlineComponent implements OnInit, OnDestroy {
   private readonly threadApi = inject(ThreadApiService)
 
   get taskSummary(): string {
-    const firstUser = this.subMessages.find((m) => m.role === 'user')
-    if (firstUser) {
-      const text = firstUser.content
+    const lastUser = this.subMessages.findLast((m) => m.role === 'user')
+    if (lastUser) {
+      const text = lastUser.content
         .filter((c) => c.type === 'text')
         .map((c) => c.content)
         .join(' ')
