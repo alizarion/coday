@@ -1,3 +1,18 @@
+## 0.96.0 (2026-03-19)
+
+### 🚀 Features
+
+- #590 user autocomplete for thread sharing with generic ds-autocomplete-input ([#590](https://github.com/whoz-oss/coday/issues/590))
+
+### 🩹 Fixes
+
+- #590 live refresh of participant list and share panel as drawer ([#590](https://github.com/whoz-oss/coday/issues/590))
+- #590 remove low-value console.log statements per PR review ([#590](https://github.com/whoz-oss/coday/issues/590))
+
+### ❤️ Thank You
+
+- m1
+
 ## 0.95.0 (2026-03-19)
 
 ### 🚀 Features
