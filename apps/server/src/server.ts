@@ -265,7 +265,7 @@ function getUsername(req: express.Request): string {
 }
 
 // Register user information routes
-registerUserRoutes(app, getUsername)
+registerUserRoutes(app, getUsername, codayOptions.configDir)
 
 // Register configuration management routes
 registerConfigRoutes(app, configRegistry, getUsername)
