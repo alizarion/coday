@@ -341,17 +341,14 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
 
   // Drawer toggle/close methods
   toggleFileDrawer(): void {
-    console.log('[THREAD] Toggling file drawer')
     this.drawerMode = this.drawerMode === 'files' ? 'none' : 'files'
   }
 
   toggleSharePanel(): void {
-    console.log('[THREAD] Toggling share panel')
     this.drawerMode = this.drawerMode === 'share' ? 'none' : 'share'
   }
 
   closeDrawer(): void {
-    console.log('[THREAD] Closing drawer')
     this.drawerMode = 'none'
   }
 

@@ -195,7 +195,6 @@ export class ThreadStateService {
    * so that distinctUntilChanged on the ID would otherwise suppress the re-fetch.
    */
   refreshSelectedThread(): void {
-    console.log('[THREAD_STATE] Refreshing selected thread details')
     this.refreshSelectedThreadSubject.next()
   }
 
