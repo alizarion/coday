@@ -1,3 +1,24 @@
+## 0.95.0 (2026-03-19)
+
+### 🚀 Features
+
+- #571 thread-targeted delegation ([#571](https://github.com/whoz-oss/coday/issues/571))
+- #571 add list_sub_threads tool and fix thread passthrough in allow-list wrapper ([#571](https://github.com/whoz-oss/coday/issues/571))
+- #571 thread-targeted delegation ([#594](https://github.com/whoz-oss/coday/pull/594), [#571](https://github.com/whoz-oss/coday/issues/571))
+
+### 🩹 Fixes
+
+- #571 sharpen tool descriptions to prevent context re-injection on resumption ([#571](https://github.com/whoz-oss/coday/issues/571))
+- #571 add threadId to delegation JSON schema ([#571](https://github.com/whoz-oss/coday/issues/571))
+- #571 delegation header shows latest task on resumed threads ([#571](https://github.com/whoz-oss/coday/issues/571))
+- #571 clarify that any agent can resume an existing sub-thread ([#571](https://github.com/whoz-oss/coday/issues/571))
+- #571 prevent new thread creation when resuming with different agent ([#571](https://github.com/whoz-oss/coday/issues/571))
+
+### ❤️ Thank You
+
+- m1
+- Mathieu De Armey @mathieu-dearmey
+
 ## 0.94.0 (2026-03-18)
 
 ### 🚀 Features
