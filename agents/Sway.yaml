@@ -11,6 +11,7 @@ integrations:
     # Read PRs and comments
     - get_pull_request
     - get_pull_request_comments
+    - add_issue_comment
     - get_pull_request_files
     - get_pull_request_reviews
     - list_pull_requests
