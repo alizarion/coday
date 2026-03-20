@@ -1,3 +1,18 @@
+## 0.96.1 (2026-03-20)
+
+### 🚀 Features
+
+- #592 add setup.sh script with binary checks and frozen install ([#593](https://github.com/whoz-oss/coday/pull/593), [#592](https://github.com/whoz-oss/coday/issues/592))
+
+### 🩹 Fixes
+
+- prevent duplicate speech transcripts on Chrome mobile ([#597](https://github.com/whoz-oss/coday/pull/597))
+
+### ❤️ Thank You
+
+- m1
+- vincent-audibert-whoz
+
 ## 0.96.0 (2026-03-19)
 
 ### 🚀 Features
