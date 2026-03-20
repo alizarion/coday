@@ -1,3 +1,14 @@
+## 0.97.0 (2026-03-20)
+
+### 🚀 Features
+
+- #596 per-project preview server with start/stop UI and idle aut… ([#598](https://github.com/whoz-oss/coday/pull/598), [#596](https://github.com/whoz-oss/coday/issues/596))
+
+### ❤️ Thank You
+
+- m1
+- Mathieu De Armey @mathieu-dearmey
+
 ## 0.96.1 (2026-03-20)
 
 ### 🚀 Features
