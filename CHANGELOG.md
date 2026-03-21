@@ -1,3 +1,14 @@
+## 0.97.1 (2026-03-21)
+
+### 🩹 Fixes
+
+- #604 thread sharing — shared user cannot see or interact with thread ([#605](https://github.com/whoz-oss/coday/pull/605), [#604](https://github.com/whoz-oss/coday/issues/604))
+
+### ❤️ Thank You
+
+- m1
+- Mathieu De Armey @mathieu-dearmey
+
 ## 0.97.0 (2026-03-20)
 
 ### 🚀 Features
