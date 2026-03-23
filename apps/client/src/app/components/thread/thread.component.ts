@@ -150,10 +150,6 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
     // Setup print event listeners
     this.setupPrintHandlers()
 
-    // Ensure username is loaded (thread-selector may not have run yet on direct URL refresh)
-    if (!this.userService.getUsername()) {
-      this.userService.fetchCurrentUser().pipe(takeUntil(this.destroy$)).subscribe()
-    }
     // Track username reactively — when it loads, force a new messages array reference
     // so Angular re-evaluates the isOtherUser binding for all rendered messages.
     this.userService.username$.pipe(takeUntil(this.destroy$)).subscribe((username) => {
