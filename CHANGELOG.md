@@ -1,3 +1,13 @@
+## 0.99.0 (2026-03-23)
+
+### 🚀 Features
+
+- #585 async delegation support and worktree setup fix ([#611](https://github.com/whoz-oss/coday/pull/611), [#585](https://github.com/whoz-oss/coday/issues/585))
+
+### ❤️ Thank You
+
+- vincent-audibert-whoz
+
 ## 0.98.0 (2026-03-22)
 
 ### 🚀 Features
