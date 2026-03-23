@@ -91,15 +91,17 @@
                     <mat-icon>{{ isStarred(thread) ? 'star' : 'star_outline' }}</mat-icon>
                   </button>
 
-                  <button
-                    mat-icon-button
-                    class="action-button delete-button"
-                    title="Delete thread"
-                    (click)="deleteThread($event, thread)"
-                    type="button"
-                  >
-                    <mat-icon>delete</mat-icon>
-                  </button>
+                  @if (isThreadOwner(thread)) {
+                    <button
+                      mat-icon-button
+                      class="action-button delete-button"
+                      title="Delete thread"
+                      (click)="deleteThread($event, thread)"
+                      type="button"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  }
                 </div>
               </div>
             }

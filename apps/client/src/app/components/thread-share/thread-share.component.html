@@ -32,6 +32,11 @@
             <mat-icon>close</mat-icon>
           </button>
         }
+        @if (!isOwner && user.userId === currentUsername) {
+          <button mat-icon-button class="remove-button" (click)="removeUser(user.userId)" title="Leave thread">
+            <mat-icon>exit_to_app</mat-icon>
+          </button>
+        }
       </div>
     }
   </div>

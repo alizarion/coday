@@ -9,7 +9,7 @@ import { CodayOptions } from '@coday/model'
 import { MAX_FILE_SIZE, isFileExtensionAllowed, getAllowedExtensionsString } from '@coday/model'
 import { ThreadService } from '@coday/service'
 import { ThreadFileService } from '@coday/service'
-import { hasAccess } from '@coday/model'
+import { hasAccess, isOwner } from '@coday/model'
 
 /**
  * Thread Management REST API Routes
@@ -473,8 +473,8 @@ export function registerThreadRoutes(
         return
       }
 
-      if (!hasAccess(existingThread, username)) {
-        res.status(403).json({ error: 'Access denied: thread belongs to another user' })
+      if (!isOwner(existingThread, username)) {
+        res.status(403).json({ error: 'Access denied: only the thread owner can delete a thread' })
         return
       }
 

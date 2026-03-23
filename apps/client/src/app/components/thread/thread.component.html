@@ -27,8 +27,8 @@
           </button>
         }
 
-        <!-- Share Button - hidden when share drawer open -->
-        @if (drawerMode !== 'share') {
+        <!-- Share Button - hidden when share drawer open or no other users exist -->
+        @if (drawerMode !== 'share' && hasOtherUsers()) {
           <button
             matFab
             class="share-toggle-btn"
@@ -57,6 +57,7 @@
               [messages]="messages"
               [streamingText]="streamingText"
               [isThinking]="isThinking"
+              [currentUsername]="currentUsername"
               (copyRequested)="onCopyMessage($event)"
               (stopRequested)="onStopRequested()"
             ></app-chat-history>

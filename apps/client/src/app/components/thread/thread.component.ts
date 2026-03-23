@@ -35,6 +35,7 @@ import { ImageUploadService } from '../../services/image-upload.service'
 import { FileExchangeStateService } from '../../core/services/file-exchange-state.service'
 import { FirstMessageStateService } from '../../core/services/first-message-state.service'
 import { UserService } from '../../core/services/user.service'
+import { UserApiService } from '../../core/services/user-api.service'
 
 /**
  * ThreadComponent - Dedicated component for displaying and interacting with a conversation thread
@@ -114,9 +115,7 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
     return this.fileExchangeState.fileCount()
   }
 
-  get currentUsername(): string {
-    return this.userService.getUsername() ?? ''
-  }
+  currentUsername: string = ''
 
   // First message from implicit thread creation
   private pendingFirstMessage: string | null = null
@@ -130,6 +129,9 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
 
   private readonly threadState = inject(ThreadStateService)
   private readonly userService = inject(UserService)
+  private readonly userApiService = inject(UserApiService)
+
+  readonly hasOtherUsers = this.userApiService.hasOtherUsers
   private readonly imageUploadService = inject(ImageUploadService)
   private readonly fileExchangeState = inject(FileExchangeStateService)
   private readonly firstMessageState = inject(FirstMessageStateService)
@@ -145,6 +147,19 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
 
     // Setup print event listeners
     this.setupPrintHandlers()
+
+    // Ensure username is loaded (thread-selector may not have run yet on direct URL refresh)
+    if (!this.userService.getUsername()) {
+      this.userService.fetchCurrentUser().pipe(takeUntil(this.destroy$)).subscribe()
+    }
+    // Track username reactively — when it loads, force a new messages array reference
+    // so Angular re-evaluates the isOtherUser binding for all rendered messages.
+    this.userService.username$.pipe(takeUntil(this.destroy$)).subscribe((username) => {
+      this.currentUsername = username ?? ''
+      if (this.messages.length > 0) {
+        this.messages = [...this.messages]
+      }
+    })
 
     // Initialize the thread connection
     this.initializeThreadConnection()
