@@ -9,7 +9,7 @@ import { CodayOptions } from '@coday/model'
 import { MAX_FILE_SIZE, isFileExtensionAllowed, getAllowedExtensionsString } from '@coday/model'
 import { ThreadService } from '@coday/service'
 import { ThreadFileService } from '@coday/service'
-import { hasAccess, isOwner } from '@coday/model'
+import { hasAccess } from '@coday/model'
 
 /**
  * Thread Management REST API Routes
@@ -232,9 +232,7 @@ export function registerThreadRoutes(
             return
           }
         }
-        // Ensure current user is always in the users list (prevent self-removal)
-        const currentUserInList = users.some((u) => u.userId === username)
-        resolvedUsers = currentUserInList ? users : [{ userId: username }, ...users]
+        resolvedUsers = users
       }
 
       debugLog('THREAD', `PUT update thread: ${threadId} in project: ${projectName}`)
@@ -473,8 +471,8 @@ export function registerThreadRoutes(
         return
       }
 
-      if (!isOwner(existingThread, username)) {
-        res.status(403).json({ error: 'Access denied: only the thread owner can delete a thread' })
+      if (!hasAccess(existingThread, username)) {
+        res.status(403).json({ error: 'Access denied: thread belongs to another user' })
         return
       }
 

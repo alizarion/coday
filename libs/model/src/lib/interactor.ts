@@ -38,7 +38,7 @@ export abstract class Interactor {
     this.sendEvent(inviteEvent)
     try {
       const answerEvent = await firstValueFrom(answer)
-      this.lastAnswerName = answerEvent.author
+      this.lastAnswerName = answerEvent.name
       return answerEvent.answer
     } catch (error: any) {
       throw new Error(`No answer received over invite ${inviteEvent.timestamp} : ${error.message}`)

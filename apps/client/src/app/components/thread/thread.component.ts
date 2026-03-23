@@ -36,6 +36,7 @@ import { FileExchangeStateService } from '../../core/services/file-exchange-stat
 import { FirstMessageStateService } from '../../core/services/first-message-state.service'
 import { UserService } from '../../core/services/user.service'
 import { UserApiService } from '../../core/services/user-api.service'
+import { Router } from '@angular/router'
 
 /**
  * ThreadComponent - Dedicated component for displaying and interacting with a conversation thread
@@ -130,6 +131,7 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
   private readonly threadState = inject(ThreadStateService)
   private readonly userService = inject(UserService)
   private readonly userApiService = inject(UserApiService)
+  private readonly router = inject(Router)
 
   readonly hasOtherUsers = this.userApiService.hasOtherUsers
   private readonly imageUploadService = inject(ImageUploadService)
@@ -401,7 +403,7 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
     console.log('[THREAD] Removing user from thread:', userId)
     if (!this.threadDetails) return
 
-    // Optimistic: derive new list from local threadDetails — avoids race condition
+    const isSelf = userId === this.currentUsername
     const updatedUsers = (this.threadDetails.users || []).filter((u) => u.userId !== userId)
 
     this.threadState
@@ -410,7 +412,13 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
       .subscribe({
         next: () => {
           console.log('[THREAD] User removed successfully')
-          this.threadState.refreshSelectedThread()
+          if (isSelf) {
+            this.threadState.clearSelection()
+            this.threadState.refreshThreadList()
+            void this.router.navigate(['project', this.projectName])
+          } else {
+            this.threadState.refreshSelectedThread()
+          }
         },
         error: (error) => {
           console.error('[THREAD] Error removing user:', error)

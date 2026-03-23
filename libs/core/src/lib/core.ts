@@ -97,7 +97,7 @@ export class Coday {
       // Answer the pending question (invite or choice) to unblock the await.
       // The AnswerEvent subscriber in the constructor will clear pendingQuestionEvent.
       const answerEvent = this.pendingQuestionEvent.buildAnswer(message)
-      answerEvent.author = username
+      answerEvent.name = username
       this.interactor.sendEvent(answerEvent)
     } else {
       // Agent is running — queue the message for the next initCommand() iteration.

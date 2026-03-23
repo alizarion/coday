@@ -398,7 +398,7 @@ export class CodayService implements OnDestroy {
     const message: ChatMessage = {
       id: event.timestamp,
       role: 'user',
-      speaker: event.author ?? this.userService.getUsername() ?? 'User',
+      speaker: event.name ?? this.userService.getUsername() ?? 'User',
       content: [{ type: 'text', content: event.answer }],
       timestamp: event.date,
       type: 'text',

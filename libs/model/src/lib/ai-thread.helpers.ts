@@ -8,14 +8,6 @@ export function hasAccess(thread: { users: ThreadUser[] }, username: string): bo
   return thread.users.some((u) => u.userId === username)
 }
 
-/**
- * Returns true if the given username is the owner of the thread.
- * The owner is the first user in the users array.
- */
-export function isOwner(thread: { users: ThreadUser[] }, username: string): boolean {
-  return thread.users.length > 0 && thread.users[0]?.userId === username
-}
-
 export function partition(
   messages: ThreadMessage[],
   charBudget: number | undefined,

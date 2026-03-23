@@ -295,14 +295,6 @@ export class ThreadSelectorComponent implements OnInit {
   }
 
   /**
-   * Check if the current user is the owner of a thread (first user in users array)
-   */
-  isThreadOwner(thread: any): boolean {
-    const currentUsername = this.username()
-    return !!currentUsername && thread.users && thread.users.length > 0 && thread.users[0].userId === currentUsername
-  }
-
-  /**
    * Check if a thread is starred by the current user
    */
   isStarred(thread: { starring: string[] }): boolean {

@@ -126,15 +126,15 @@ export const InviteEventDefault = 'InviteEventDefault'
 export class AnswerEvent extends CodayEvent {
   answer: string
   invite: string | undefined
-  /** Username of the human who sent this answer */
-  author: string | undefined
+  /** Name of the human who sent this answer */
+  name: string | undefined
   static override type = 'answer'
 
   constructor(event: Partial<AnswerEvent>) {
     super(event, AnswerEvent.type)
     this.answer = event.answer ?? 'No answer'
     this.invite = event.invite
-    this.author = event.author
+    this.name = event.name
   }
 }
 

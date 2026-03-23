@@ -101,7 +101,7 @@ export function parseCodayOptions(): CodayOptions {
   const defaultConfigDir = path.join(os.homedir(), '.coday')
   const configDir: string = argv.coday_config_dir || defaultConfigDir
 
-  const auth: boolean = !!argv.auth || process.env['CODAY_AUTH'] === 'true'
+  const auth: boolean = !!argv.auth
   const debug: boolean = !!argv.debug
   const noLog: boolean = !argv.log // Inverted: log=false means noLog=true
   const logFolder: string | undefined = argv.log_folder

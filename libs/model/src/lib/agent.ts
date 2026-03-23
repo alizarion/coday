@@ -57,7 +57,7 @@ export class Agent {
 
     // Add AnswerEvent to thread with the original command (including @agentName if present)
     // This preserves the user's original input in the thread history
-    const answerEvent = new AnswerEvent({ answer: trimmedCommand, author: username ?? thread.username })
+    const answerEvent = new AnswerEvent({ answer: trimmedCommand, name: username ?? thread.username })
     thread.addAnswerEvent(answerEvent)
 
     // Run with AI client
