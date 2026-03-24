@@ -1,3 +1,14 @@
+## 0.102.0 (2026-03-24)
+
+### 🚀 Features
+
+- #620 user-initiated manual delegation command ([#630](https://github.com/whoz-oss/coday/pull/630), [#620](https://github.com/whoz-oss/coday/issues/620), [#619](https://github.com/whoz-oss/coday/issues/619))
+
+### ❤️ Thank You
+
+- cetautomatix-coday
+- m1
+
 ## 0.101.0 (2026-03-24)
 
 ### 🚀 Features
