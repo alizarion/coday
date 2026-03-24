@@ -1,3 +1,14 @@
+## 0.101.0 (2026-03-24)
+
+### 🚀 Features
+
+- #624 sub-threads created by delegations appear in conversation list ([#626](https://github.com/whoz-oss/coday/pull/626), [#624](https://github.com/whoz-oss/coday/issues/624))
+
+### ❤️ Thank You
+
+- cetautomatix-coday
+- m1
+
 ## 0.100.0 (2026-03-24)
 
 ### 🚀 Features
