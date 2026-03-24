@@ -298,13 +298,14 @@ async function runSingleDelegation(
       new AnswerEvent({
         answer: task,
         threadId: subThread.id,
+        name: context.username,
       })
     )
 
     // Run the agent — the AI client will pass subThread to ToolSet.run(),
     // so any nested delegation from this agent will correctly use subThread as parent.
-    const agentEvents: Observable<MessageEvent> = (await agent.run(task, subThread)).pipe(
-      filter((e: unknown) => e instanceof MessageEvent)
+    const agentEvents: Observable<MessageEvent> = (await agent.run(task, subThread, context.username)).pipe(
+      filter((e) => e instanceof MessageEvent)
     )
 
     const lastMessage: MessageEvent | undefined = await lastValueFrom(agentEvents, { defaultValue: undefined })
