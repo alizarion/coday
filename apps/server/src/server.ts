@@ -28,6 +28,8 @@ import { AgentCrudService } from '@coday/service'
 import { registerPromptRoutes } from './lib/prompt.routes'
 import { registerSchedulerRoutes } from './lib/scheduler.routes'
 import { registerPromptExecutionRoutes } from './lib/prompt-execution.routes'
+import { registerTokenUsageRoutes } from './lib/token-usage.routes'
+import { registerProjectPreviewRoutes } from './lib/project-preview.routes'
 import { parseCodayOptions } from './lib/coday-options-utils'
 import { ProjectFileRepository } from '@coday/repository'
 import { McpInstancePool } from '@coday/mcp'
@@ -54,7 +56,9 @@ const loggingEnabled = !codayOptions.noLog
 const logger = new CodayLoggerUtils(loggingEnabled, codayOptions.logFolder)
 debugLog(
   'INIT',
-  `Usage logging ${loggingEnabled ? 'enabled' : 'disabled'} ${codayOptions.logFolder ? `(custom folder: ${codayOptions.logFolder})` : ''}`
+  `Usage logging ${loggingEnabled ? 'enabled' : 'disabled'} ${
+    codayOptions.logFolder ? `(custom folder: ${codayOptions.logFolder})` : ''
+  }`
 )
 
 // Create webhook service instance (delegates to prompt execution)
@@ -88,7 +92,8 @@ app.use(express.json({ limit: '20mb' }))
 
 // Development mode: proxy to Angular dev server
 if (process.env.BUILD_ENV === 'development') {
-  const ANGULAR_DEV_SERVER = 'http://localhost:4200'
+  const angularClientPort = process.env.ANGULAR_CLIENT_PORT ?? '4200'
+  const ANGULAR_DEV_SERVER = `http://localhost:${angularClientPort}`
   debugLog('INIT', `Development mode: proxying to Angular dev server at ${ANGULAR_DEV_SERVER}`)
 
   // Import http-proxy-middleware dynamically
@@ -181,6 +186,19 @@ if (resolvedProjectName && !codayOptions.forcedProject) {
 const projectService = new ProjectService(projectRepository, resolvedProjectName, codayOptions.forcedProject)
 
 promptService = new PromptService(codayOptions.configDir, projectService)
+
+// Register native command handler stubs so they appear in the autocomplete
+// (the actual execution is handled by DelegateCommandHandler in the looper)
+promptService.registerNativeHandler({
+  id: 'handler-delegate',
+  name: 'delegate',
+  description: 'Delegate a task to a specific agent in an isolated sub-thread',
+  source: 'builtin',
+  webhookEnabled: false,
+  createdBy: 'system',
+  createdAt: new Date('2024-01-01').toISOString(),
+  parameterFormat: '@AgentName <task>',
+})
 debugLog('INIT', 'Prompt service initialized')
 
 // Create prompt execution service
@@ -262,7 +280,7 @@ function getUsername(req: express.Request): string {
 }
 
 // Register user information routes
-registerUserRoutes(app, getUsername)
+registerUserRoutes(app, getUsername, codayOptions.configDir)
 
 // Register configuration management routes
 registerConfigRoutes(app, configRegistry, getUsername)
@@ -278,6 +296,9 @@ registerPromptExecutionRoutes(app, promptExecutionService, getUsername)
 
 // Register project management routes
 registerProjectRoutes(app, projectService)
+
+// Register project preview routes
+registerProjectPreviewRoutes(app, projectService)
 
 // Register thread management routes
 registerThreadRoutes(app, threadService, threadFileService, threadCodayManager, getUsername, codayOptions)
@@ -304,6 +325,9 @@ const schedulerService = new SchedulerService(logger, promptService, codayOption
 
 // Register scheduler routes (service will be initialized after server starts)
 registerSchedulerRoutes(app, schedulerService, getUsername)
+
+// Register token usage reporting routes
+registerTokenUsageRoutes(app, logger, getUsername, codayOptions.auth)
 
 // Catch-all route for Angular client-side routing (MUST be after all API routes)
 // In production mode, serve index.html for any non-API routes

@@ -1,8 +1,10 @@
 package io.whozoss.agentos.sdk.caseEvent
 
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonValue
 import io.whozoss.agentos.sdk.actor.Actor
 import io.whozoss.agentos.sdk.caseFlow.CaseStatus
 import io.whozoss.agentos.sdk.entity.Entity
@@ -15,7 +17,9 @@ import java.util.UUID
  * Values match the simple class names of each CaseEvent subtype,
  * used as the Jackson discriminant for polymorphic (de)serialization.
  */
-enum class CaseEventType(val value: String) {
+enum class CaseEventType(
+    @JsonValue val value: String,
+) {
     STATUS("CaseStatusEvent"),
     AGENT_SELECTED("AgentSelectedEvent"),
     MESSAGE("MessageEvent"),
@@ -31,6 +35,15 @@ enum class CaseEventType(val value: String) {
     INTENTION_GENERATED("IntentionGeneratedEvent"),
     TOOL_SELECTED("ToolSelectedEvent"),
     TEXT_CHUNK("TextChunkEvent"),
+    ;
+
+    companion object {
+        @JvmStatic
+        @JsonCreator
+        fun fromValue(value: String): CaseEventType =
+            entries.firstOrNull { it.value == value }
+                ?: throw IllegalArgumentException("Unknown CaseEventType value: $value")
+    }
 }
 
 /**
@@ -61,7 +74,7 @@ enum class CaseEventType(val value: String) {
     JsonSubTypes.Type(value = TextChunkEvent::class, name = "TextChunkEvent"),
 )
 sealed interface CaseEvent : Entity {
-    val projectId: UUID
+    val namespaceId: UUID
     val caseId: UUID
     val timestamp: Instant
     val type: CaseEventType
@@ -72,7 +85,7 @@ sealed interface CaseEvent : Entity {
  */
 data class CaseStatusEvent(
     override val metadata: EntityMetadata,
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val status: CaseStatus,
@@ -82,7 +95,7 @@ data class CaseStatusEvent(
 
 data class WarnEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val message: String,
@@ -95,7 +108,7 @@ data class WarnEvent(
  */
 data class AgentSelectedEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val agentId: UUID,
@@ -106,7 +119,7 @@ data class AgentSelectedEvent(
 
 data class AgentFinishedEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val agentId: UUID,
@@ -117,7 +130,7 @@ data class AgentFinishedEvent(
 
 data class AgentRunningEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val agentId: UUID,
@@ -131,7 +144,7 @@ data class AgentRunningEvent(
  */
 data class MessageEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val actor: Actor,
@@ -145,7 +158,7 @@ data class MessageEvent(
  */
 data class ToolRequestEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val toolRequestId: String,
@@ -160,7 +173,7 @@ data class ToolRequestEvent(
  */
 data class ToolResponseEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val toolRequestId: String,
@@ -176,7 +189,7 @@ data class ToolResponseEvent(
  */
 data class ThinkingEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
 ) : CaseEvent {
@@ -189,7 +202,7 @@ data class ThinkingEvent(
  */
 data class QuestionEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val agentId: UUID,
@@ -202,9 +215,12 @@ data class QuestionEvent(
     /**
      * Create an AnswerEvent that references this question.
      */
-    fun createAnswer(actor: Actor, answer: String): AnswerEvent =
+    fun createAnswer(
+        actor: Actor,
+        answer: String,
+    ): AnswerEvent =
         AnswerEvent(
-            projectId = projectId,
+            namespaceId = namespaceId,
             caseId = caseId,
             questionId = id,
             actor = actor,
@@ -218,7 +234,7 @@ data class QuestionEvent(
  */
 data class AnswerEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val questionId: UUID,
@@ -234,7 +250,7 @@ data class AnswerEvent(
  */
 data class IntentionGeneratedEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val agentId: UUID,
@@ -249,7 +265,7 @@ data class IntentionGeneratedEvent(
  */
 data class ToolSelectedEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val agentId: UUID,
@@ -264,7 +280,7 @@ data class ToolSelectedEvent(
  */
 data class TextChunkEvent(
     override val metadata: EntityMetadata = EntityMetadata(),
-    override val projectId: UUID,
+    override val namespaceId: UUID,
     override val caseId: UUID,
     override val timestamp: Instant = Instant.now(),
     val chunk: String,

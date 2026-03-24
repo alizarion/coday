@@ -42,7 +42,7 @@ export class IntegrationConfigService {
         return {}
       }
       const userProjects = this.userService.config.projects || {}
-      integrations = userProjects[project.name]?.integration || {}
+      integrations = userProjects[this.userService.resolveProjectName(project.name)]?.integration || {}
     }
 
     // Mask API keys for security
@@ -84,7 +84,7 @@ export class IntegrationConfigService {
         throw new Error('No project selected')
       }
 
-      // Use existing UserService method for user-level integration
+      // Use existing UserService method for user-level integration (resolves worktree names internally)
       this.userService.setProjectIntegration(project.name, { [name]: config })
     }
 
@@ -130,8 +130,9 @@ export class IntegrationConfigService {
       }
 
       // Get current user integrations for this project
+      const resolvedName = this.userService.resolveProjectName(project.name)
       const userProjects = this.userService.config.projects || {}
-      const currentUserIntegrations = userProjects[project.name]?.integration || {}
+      const currentUserIntegrations = userProjects[resolvedName]?.integration || {}
 
       // Check if integration exists
       if (!currentUserIntegrations[name]) {
@@ -146,12 +147,12 @@ export class IntegrationConfigService {
       if (!this.userService.config.projects) {
         this.userService.config.projects = {}
       }
-      if (!this.userService.config.projects[project.name]) {
-        this.userService.config.projects[project.name] = { integration: {} }
+      if (!this.userService.config.projects[resolvedName]) {
+        this.userService.config.projects[resolvedName] = { integration: {} }
       }
 
       // Update user configuration
-      this.userService.config.projects[project.name]!.integration = updatedIntegrations
+      this.userService.config.projects[resolvedName]!.integration = updatedIntegrations
       this.userService.save()
     }
 
@@ -172,7 +173,7 @@ export class IntegrationConfigService {
 
     // Get user-level integrations
     const userProjects = this.userService.config.projects || {}
-    const userIntegrations = userProjects[project.name]?.integration || {}
+    const userIntegrations = userProjects[this.userService.resolveProjectName(project.name)]?.integration || {}
 
     // Merge: start with project, then override with user
     const merged: IntegrationLocalConfig = { ...projectIntegrations }
@@ -222,6 +223,30 @@ export class IntegrationConfigService {
   }
 
   /**
+   * Get all integration configurations at a specific level without any masking.
+   * Intended for internal use by agent tools that need to read and write configs
+   * (e.g. HttpConfigTools). Callers are responsible for not leaking sensitive fields.
+   */
+  getUnmaskedIntegrationsAtLevel(level: ConfigLevel): Record<string, IntegrationConfig> {
+    ConfigLevelValidator.validate(level)
+
+    if (level === ConfigLevel.CODAY) {
+      throw new Error('CODAY level not supported for integrations')
+    }
+
+    if (level === ConfigLevel.PROJECT) {
+      const project = this.projectService.selectedProject
+      return project ? { ...(project.config.integration ?? {}) } : {}
+    }
+
+    // USER level
+    const project = this.projectService.selectedProject
+    if (!project) return {}
+    const userProjects = this.userService.config.projects ?? {}
+    return { ...(userProjects[this.userService.resolveProjectName(project.name)]?.integration ?? {}) }
+  }
+
+  /**
    * Get the actual (unmasked) integration configuration for internal use
    * This method should only be used when the actual API key is needed (e.g., for API calls)
    */
@@ -245,7 +270,7 @@ export class IntegrationConfigService {
         return undefined
       }
       const userProjects = this.userService.config.projects || {}
-      const integrations = userProjects[project.name]?.integration || {}
+      const integrations = userProjects[this.userService.resolveProjectName(project.name)]?.integration || {}
       return integrations[name]
     }
 

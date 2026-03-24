@@ -10,8 +10,8 @@
   <mat-drawer-container class="file-drawer-container" [hasBackdrop]="false">
     <mat-drawer-content>
       <div class="thread-container">
-        <!-- Floating File Exchange Button (top-right) - hidden when drawer open -->
-        @if (!isFileDrawerOpen) {
+        <!-- Floating File Exchange Button (top-right) - hidden when file drawer open -->
+        @if (drawerMode !== 'files') {
           <button
             matFab
             class="file-drawer-toggle-btn"
@@ -24,6 +24,20 @@
             type="button"
           >
             <mat-icon>folder_open</mat-icon>
+          </button>
+        }
+
+        <!-- Share Button - hidden when share drawer open -->
+        @if (drawerMode !== 'share') {
+          <button
+            matFab
+            class="share-toggle-btn"
+            (click)="toggleSharePanel()"
+            [class.has-shared-users]="(threadDetails?.users?.length ?? 0) > 1"
+            title="Share thread"
+            type="button"
+          >
+            <mat-icon>group</mat-icon>
           </button>
         }
 
@@ -43,6 +57,7 @@
               [messages]="messages"
               [streamingText]="streamingText"
               [isThinking]="isThinking"
+              [currentUsername]="currentUsername"
               (copyRequested)="onCopyMessage($event)"
               (stopRequested)="onStopRequested()"
             ></app-chat-history>
@@ -59,45 +74,59 @@
         <!-- Input Section -->
         <div class="input-section" #inputSection>
           <div class="input-center">
-            <div class="input-glass">
-              @if (!currentChoice) {
-                <app-chat-textarea
-                  [isDisabled]="!isConnected"
-                  [isSessionInitializing]="false"
-                  [showWelcome]="false"
-                  [isThinking]="isThinking"
-                  [isStarting]="false"
-                  (messageSubmitted)="onMessageSubmitted($event)"
-                  (voiceRecordingToggled)="onVoiceToggled($event)"
-                  (heightChanged)="onInputHeightChanged($event)"
-                  (stopRequested)="onStopRequested()"
-                  (filesPasted)="onFilesPasted($event)"
-                />
-              }
+            @if (!currentChoice) {
+              <app-chat-textarea
+                [isDisabled]="!isConnected"
+                [isSessionInitializing]="false"
+                [showWelcome]="false"
+                [isThinking]="isThinking"
+                [isStarting]="false"
+                (messageSubmitted)="onMessageSubmitted($event)"
+                (voiceRecordingToggled)="onVoiceToggled($event)"
+                (heightChanged)="onInputHeightChanged($event)"
+                (stopRequested)="onStopRequested()"
+                (filesPasted)="onFilesPasted($event)"
+              />
+            }
 
-              <!-- Choice Select - Overlay on top of input-section -->
-              @if (currentChoice) {
-                <app-choice-select
-                  [options]="currentChoice.options"
-                  [labelHtml]="currentChoice.label"
-                  [isVisible]="!!currentChoice"
-                  (choiceSelected)="onChoiceSelected($event)"
-                  class="choice-overlay"
-                ></app-choice-select>
-              }
-            </div>
+            <!-- Choice Select - Overlay on top of input-section -->
+            @if (currentChoice) {
+              <app-choice-select
+                [options]="currentChoice.options"
+                [labelHtml]="currentChoice.label"
+                [isVisible]="!!currentChoice"
+                [allowFreeText]="currentChoice.allowFreeText"
+                (choiceSelected)="onChoiceSelected($event)"
+                class="choice-overlay"
+              ></app-choice-select>
+            }
           </div>
         </div>
       </div>
     </mat-drawer-content>
 
-    <!-- File Exchange Drawer (right side) -->
-    <mat-drawer mode="side" position="end" [opened]="isFileDrawerOpen" (closed)="closeFileDrawer()">
-      <app-file-exchange-drawer
-        [projectName]="projectName"
-        [threadId]="threadId"
-        (closeDrawer)="closeFileDrawer()"
-      ></app-file-exchange-drawer>
+    <!-- Right-side Drawer: switches between file exchange and share panel -->
+    <mat-drawer mode="side" position="end" [opened]="isDrawerOpen" (closed)="closeDrawer()">
+      @if (drawerMode === 'files') {
+        <app-file-exchange-drawer [projectName]="projectName" [threadId]="threadId" (closeDrawer)="closeDrawer()" />
+      }
+      @if (drawerMode === 'share' && threadDetails) {
+        <div class="share-drawer-container">
+          <div class="drawer-header">
+            <h3 class="drawer-title">Share</h3>
+            <button mat-icon-button class="close-btn" (click)="closeDrawer()" title="Close" type="button">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+          <app-thread-share
+            [threadId]="threadId"
+            [users]="threadDetails.users || []"
+            [currentUsername]="currentUsername"
+            (userAdded)="onUserAdded($event)"
+            (userRemoved)="onUserRemoved($event)"
+          />
+        </div>
+      }
     </mat-drawer>
   </mat-drawer-container>
 

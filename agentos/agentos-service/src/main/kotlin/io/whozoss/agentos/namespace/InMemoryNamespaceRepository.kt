@@ -1,26 +1,30 @@
 package io.whozoss.agentos.namespace
 
+import io.whozoss.agentos.entity.EntityRepository
+import io.whozoss.agentos.entity.InMemoryEntityRepository
 import io.whozoss.agentos.sdk.entity.EntityMetadata
-import io.whozoss.agentos.sdk.entity.InMemoryEntityRepository
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Repository
 import java.util.UUID
 
 /**
- * In-memory implementation of NamespaceRepository.
+ * In-memory implementation of [NamespaceRepository].
  *
- * Uses the generic InMemoryEntityRepository with:
- * - Entity ID: namespace.metadata.id (automatic via Entity interface)
- * - Parent ID: Unit (namespaces are root-level, no parent)
- * - Ordering: by name (alphabetical)
+ * Active only when `agentos.persistence.mode=in-memory`.
+ * The default mode is file-system persistence via [FilesystemNamespaceRepository].
  */
 @Repository
+@ConditionalOnProperty(name = ["agentos.persistence.mode"], havingValue = "in-memory")
 class InMemoryNamespaceRepository :
-    InMemoryEntityRepository<Namespace, Unit>(
-        parentIdExtractor = { Unit },
+    NamespaceRepository,
+    EntityRepository<Namespace, String> by InMemoryEntityRepository(
+        parentIdExtractor = { NamespaceRepository.NAMESPACE_PARENT_KEY },
         comparator = compareBy { it.name },
-    ),
-    NamespaceRepository {
+    ) {
     init {
+        // Seed a well-known default namespace so in-memory mode (dev/test) is usable
+        // out of the box without requiring an explicit creation step.
+        // The fixed UUID makes the seed deterministic and idempotent across restarts.
         save(
             Namespace(
                 metadata = EntityMetadata(id = UUID.fromString("00000000-0000-0000-0000-000000000001")),
