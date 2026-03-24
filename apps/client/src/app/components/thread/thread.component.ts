@@ -35,7 +35,6 @@ import { ImageUploadService } from '../../services/image-upload.service'
 import { FileExchangeStateService } from '../../core/services/file-exchange-state.service'
 import { FirstMessageStateService } from '../../core/services/first-message-state.service'
 import { UserService } from '../../core/services/user.service'
-import { UserApiService } from '../../core/services/user-api.service'
 import { Router } from '@angular/router'
 
 /**
@@ -77,6 +76,7 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
   @Input({ required: true }) threadId!: string
 
   private readonly destroy$ = new Subject<void>()
+  private readonly connectionDestroy$ = new Subject<void>()
 
   @ViewChild('inputSection') inputSection!: ElementRef<HTMLElement>
 
@@ -130,10 +130,7 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
 
   private readonly threadState = inject(ThreadStateService)
   private readonly userService = inject(UserService)
-  private readonly userApiService = inject(UserApiService)
   private readonly router = inject(Router)
-
-  readonly hasOtherUsers = this.userApiService.hasOtherUsers
   private readonly imageUploadService = inject(ImageUploadService)
   private readonly fileExchangeState = inject(FileExchangeStateService)
   private readonly firstMessageState = inject(FirstMessageStateService)
@@ -191,25 +188,28 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
     // Initialize file exchange state for this thread
     this.fileExchangeState.initializeForThread(this.projectName, this.threadId)
 
+    // Cancel any previous connection subscriptions before establishing new ones
+    this.connectionDestroy$.next()
+
     // Subscribe to conversation state
-    this.codayService.messages$.pipe(takeUntil(this.destroy$)).subscribe((messages) => {
+    this.codayService.messages$.pipe(takeUntil(this.connectionDestroy$)).subscribe((messages) => {
       console.log('[THREAD] Messages updated:', messages.length)
       this.messages = messages
     })
 
-    this.codayService.streamingText$.pipe(takeUntil(this.destroy$)).subscribe((streamingText) => {
+    this.codayService.streamingText$.pipe(takeUntil(this.connectionDestroy$)).subscribe((streamingText) => {
       this.streamingText = streamingText
     })
 
-    this.codayService.isThinking$.pipe(takeUntil(this.destroy$)).subscribe((isThinking) => {
+    this.codayService.isThinking$.pipe(takeUntil(this.connectionDestroy$)).subscribe((isThinking) => {
       this.isThinking = isThinking
     })
 
-    this.codayService.currentChoice$.pipe(takeUntil(this.destroy$)).subscribe((choice) => {
+    this.codayService.currentChoice$.pipe(takeUntil(this.connectionDestroy$)).subscribe((choice) => {
       this.currentChoice = choice
     })
 
-    this.codayService.connectionStatus$.pipe(takeUntil(this.destroy$)).subscribe((status) => {
+    this.codayService.connectionStatus$.pipe(takeUntil(this.connectionDestroy$)).subscribe((status) => {
       this.connectionStatus = status
       this.isConnected = status.connected
 
@@ -239,7 +239,7 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
     })
 
     // Listen for thread update events to refresh the thread list
-    this.codayService.threadUpdateEvent$.pipe(takeUntil(this.destroy$)).subscribe((updateEvent) => {
+    this.codayService.threadUpdateEvent$.pipe(takeUntil(this.connectionDestroy$)).subscribe((updateEvent) => {
       if (updateEvent) {
         console.log('[THREAD] Thread update event received:', updateEvent)
         // Refresh the thread list to show the updated name
@@ -248,7 +248,7 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
     })
 
     // Subscribe to selected thread details for share panel
-    this.threadState.selectedThread$.pipe(takeUntil(this.destroy$)).subscribe((thread) => {
+    this.threadState.selectedThread$.pipe(takeUntil(this.connectionDestroy$)).subscribe((thread) => {
       this.threadDetails = thread
     })
 
@@ -292,6 +292,8 @@ export class ThreadComponent implements OnInit, OnDestroy, OnChanges, AfterViewC
 
   ngOnDestroy(): void {
     console.log('[THREAD] Destroying component')
+    this.connectionDestroy$.next()
+    this.connectionDestroy$.complete()
     this.destroy$.next()
     this.destroy$.complete()
 
